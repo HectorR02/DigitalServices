@@ -1,0 +1,63 @@
+﻿@model IEnumerable<DigitalServices.Models.Facturas>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.IdCliente)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CantidadItems)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SubTotal)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ITBIS)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TOTAL)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IdEmpleado)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.IdCliente)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CantidadItems)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SubTotal)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ITBIS)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.TOTAL)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.IdEmpleado)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.IdFactura }) |
+            @Html.ActionLink("Details", "Details", new { id=item.IdFactura }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.IdFactura })
+        </td>
+    </tr>
+}
+
+</table>

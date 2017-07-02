@@ -1,0 +1,66 @@
+﻿@model DigitalServices.Models.Facturas
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Facturas</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IdCliente)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IdCliente)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CantidadItems)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CantidadItems)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SubTotal)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SubTotal)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ITBIS)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ITBIS)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TOTAL)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TOTAL)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IdEmpleado)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IdEmpleado)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.IdFactura }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
