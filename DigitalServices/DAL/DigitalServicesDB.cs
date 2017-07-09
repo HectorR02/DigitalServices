@@ -21,5 +21,9 @@ namespace DigitalServices.DAL
         public DbSet<Facturas> Factura { get; set; }
 
         public DbSet<Servicios> Servicio { get; set; }
+
+        public DbSet<Items> Items { get; set; }
+
+        public DbSet<Usuarios> Usuarios { get; set; }
     }
 }
