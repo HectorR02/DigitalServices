@@ -59,6 +59,30 @@ namespace DigitalServices.Controllers
             return View(facturas);
         }
 
+        [HttpPost]
+        public JsonResult Guardar(EncabezadoDetalle Factura)
+        {
+            bool result = false;
+            if(ModelState.IsValid)
+            {
+                try
+                {
+                    db.Factura.Add(Factura.Encabezado);
+                    foreach (FacturaDetalles item in Factura.Detalle)
+                    {
+                        db.FaturaDetalle.Add(item);
+                    }
+                    result = db.SaveChanges() > 0;
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         // GET: Facturas/Edit/5
         public ActionResult Edit(int? id)
         {

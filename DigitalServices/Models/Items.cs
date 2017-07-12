@@ -9,7 +9,7 @@ namespace DigitalServices.Models
     public class Items
     {
         [Key]
-        public int Id { get; set; }
+        public int IdItem { get; set; }
 
         public string Descripcion { get; set; }
 
@@ -20,6 +20,8 @@ namespace DigitalServices.Models
         public int Duracion { get; set; }
 
         public int EsArticulo { get; set; }
+
+        public string Dimenciones { get; set; }
 
         public Items()
         {

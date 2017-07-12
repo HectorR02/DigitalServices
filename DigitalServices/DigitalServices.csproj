@@ -159,6 +159,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Clientes.cs" />
+    <Compile Include="Models\EncabezadoDetalle.cs" />
     <Compile Include="Models\FacturaDetalles.cs" />
     <Compile Include="Models\Facturas.cs" />
     <Compile Include="Models\Items.cs" />

@@ -1,10 +1,10 @@
 ﻿@model DigitalServices.Models.Facturas
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Registro Facturas";
 }
 
-<h2>Create</h2>
+<h2><strong>Facturación</strong></h2>
 
 
 @using (Html.BeginForm()) 
@@ -12,60 +12,64 @@
     @Html.AntiForgeryToken()
     
     <div class="form-horizontal">
-        <h4>Facturas</h4>
-        <hr />
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         <div class="form-group">
-            @Html.LabelFor(model => model.IdCliente, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.IdCliente, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IdCliente, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Id:</span>
+                <input class="form-control input-group input" type="text" placeholder="Identificador" id="inpId" />
+                <button class="btn btn-group-sm btn-success" type="button" id="btnBuscar">Buscar</button>
             </div>
         </div>
-
         <div class="form-group">
-            @Html.LabelFor(model => model.CantidadItems, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.CantidadItems, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.CantidadItems, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Cliente:</span>
+                <input class="form-control input-group input" type="text" placeholder="Consumidor" id="inpCliente" />
             </div>
         </div>
-
         <div class="form-group">
-            @Html.LabelFor(model => model.SubTotal, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.SubTotal, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.SubTotal, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Item:</span>
+                <select class="form-control selected col-1" id="selItems" data-live-search="true" data-width="auto" data-size="6" onchange="ItemSeleccionado()"></select>
+                <input class="form-control input-group input" type="text" placeholder="Pecio" id="inpPrecio" readonly />
+                <input class="form-control input-group input" type="text" placeholder="Cantidad" id="inpCantidad" />
+                <button class="btn btn-group-sm btn-primary" id="btnAgregar" type="button" onclick="AgregarDetalle()">Agregar</button>
             </div>
         </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.ITBIS, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.ITBIS, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.ITBIS, "", new { @class = "text-danger" })
+        <div class="table-responsive">
+            <table class="table table-hover table-sm table-bordered" id="tItems">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descripción</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Sub-Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tItemsBody">
+                    
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group text-right">
+            <div class="input-group">
+                <input class="form-control input-group input" type="text" readonly id="inpSubTotal" placeholder="Sub-Total" value="0" />
+                <span class="input-group-addon"><strong>Sub-Total</strong></span>
+            </div>
+            <div class="input-group">
+                <input class="form-control input-group input COL-2" type="text" readonly id="inpItbis" placeholder="Impuestos" value="0" />
+                <span class="input-group-addon"><strong>ITBIS</strong></span>
+            </div>
+            <div class="input-group">
+                <input class="form-control input-group input" type="text" readonly id="inpTotal" placeholder="Total" value="0" />
+                <span class="input-group-addon glyphicon glyphicon-shopping-cart "><strong>TOTAL</strong></span>
             </div>
         </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.TOTAL, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.TOTAL, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.TOTAL, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.IdEmpleado, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.IdEmpleado, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.IdEmpleado, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group text-center col-xl-12">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <button type="button" class="btn btn-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos(1)">Nuevo</button>
+                <button type="button" class="btn btn-success col-sm-2" id="btnCrear" onclick="EnviarDatos()">Crear</button>
+                <button type="button" class="btn btn-warning col-sm-2" id="btnCrear" onclick="ModificarCotizacion()">Modificar</button>
+                <button type="button" class="btn btn-danger col-sm-2" id="btnCrear" onclick="EliminarCotizacion()">Eliminar</button>
             </div>
         </div>
     </div>
@@ -77,4 +81,122 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        var Detalle = Array();
+        
+        function ItemSeleccionado() {
+            //var id = $('#selItems').find('option:selected').attr('id');
+            //var grupo = $('#selItems').find('option:selected').closest('optgroup').attr('label');
+            //alert(id);
+            var prec = $('#selItems').find('option:selected').attr('value');
+            $('#inpPrecio').val(prec);
+        }
+
+        $(document).ready(function () {
+            $.getJSON("http://apifotostudio.azurewebsites.net/api/Items", function (Items) {
+                var opt = '<optgroup label="Servicios">'
+                $.each(Items, function (index, item) {
+                    if (item.EsArticulo == 0)
+                    {
+                        opt += '<option id="' + item.IdItem + '" value="' + item.Precio + '">' + item.Descripcion + " " + item.Dimenciones + '</option>';
+                    }
+                });
+                opt += '</optgroup>';
+                $('#selItems').append(opt);
+                ItemSeleccionado();
+            })
+        });
+        function AgregarDetalle()
+        {
+            var element = $('#selItems').find('option:selected');
+            var num = $('#tItemsBody tr').length;
+            var idItem = element.attr('id');
+            var idFactura = $('#inpId').val();
+            var desc = element.text();
+            var cant = $('#inpCantidad').val();
+
+            var prec = $('#inpPrecio').val();
+
+            var subTt = (parseInt(cant) * parseFloat(prec));
+
+            var detail = {
+                Id: 0,
+                IdFactura: 1,
+                IdItem: parseInt(idItem),
+                Descripcion: desc,
+                Cantidad: parseInt(cant),
+                Precio: parseFloat(prec),
+                Monto: subTt
+            };
+
+            Detalle.push(detail);
+            console.log(Detalle);
+            ActualizarTabla();
+        }
+        function ActualizarTabla()
+        {
+            if ($('#tItemsBody tr').length > 0)
+                $('#tItemsBody tr').remove();
+
+            var monto = 0;
+            $.each(Detalle, function (index, detail) {
+                var fila = '<tr>';
+                fila += '<td>' + (index + 1) + '</td>';
+                fila += '<td>' + detail.Descripcion + '</td>';
+                fila += '<td>' + detail.Precio + '</td>';
+                fila += '<td>' + detail.Cantidad + '</td>';
+                fila += '<td>' + detail.Monto + '</td>';
+                fila += '</tr>';
+
+                $('#tItemsBody').append(fila);
+                monto += parseFloat(detail.Monto);
+            });
+            $('#inpSubTotal').val(monto);
+            $('#inpTotal').val(monto);
+        }
+        function EnviarDatos() {
+            var id = $('#inpId').val();
+            var itbis = $('#inpItbis').val();
+            var Tt = $('#inpTotal').val();
+            var SubTt = $('#inpSubTotal').val();
+            //document.getElementById('inpCliente').setAttribute('name', '1');
+            //console.log($('#inpCliente').attr('name'))
+            var enca = {
+                IdFactura: id,
+                IdCliente: 1,
+                CantidadItems: parseInt(Detalle.length),
+                SubTotal: parseFloat(SubTt),
+                ITBIS: parseFloat(itbis),
+                TOTAL: parseFloat(Tt),
+                IdEmpleado: 1
+            }
+
+            var EncabezadoDetalle = {
+                Encabezado: enca,
+                Detalle: Detalle
+            }
+            console.log(EncabezadoDetalle);
+            console.log(JSON.stringify(EncabezadoDetalle));
+
+            SendJson(EncabezadoDetalle);
+        }
+
+        function SendJson(datos)
+        {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(datos),
+                cache: false,
+                url: "/Facturas/Guardar",
+                success: function (data) {
+                    if (!data)
+                        alert("No se pudo guardar la informacion sobre la factura.");
+                },
+                error: function (result) {
+                    alert("Ha ocurrido un erro -> " + result);
+                }
+            });
+        }
+    </script>
 }

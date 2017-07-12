@@ -13,9 +13,13 @@ namespace DigitalServices.Models
 
         public int IdFactura { get; set; }
 
-        public int IdServicio { get; set; }
+        public int IdItem { get; set; }
+
+        public string Descripcion { get; set; }
 
         public int Cantidad { get; set; }
+
+        public double Precio { get; set; }
 
         public double Monto { get; set; }
 
