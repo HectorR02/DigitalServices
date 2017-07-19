@@ -13,12 +13,10 @@ namespace DigitalServices.Controllers
 {
     public class UsuariosController : Controller
     {
-        private DigitalServicesDB db = new DigitalServicesDB();
-
         // GET: Usuarios
         public ActionResult Index()
         {
-            return View(db.Usuarios.ToList());
+            return View(BLL.UsuariosBLL.Listar());
         }
 
         // GET: Usuarios/Details/5
@@ -28,7 +26,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Usuarios usuarios = db.Usuarios.Find(id);
+            Usuarios usuarios = BLL.UsuariosBLL.Buscar(id);
             if (usuarios == null)
             {
                 return HttpNotFound();
@@ -51,8 +49,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Usuarios.Add(usuarios);
-                db.SaveChanges();
+                BLL.UsuariosBLL.Guardar(usuarios);
                 return RedirectToAction("Index");
             }
 
@@ -66,7 +63,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Usuarios usuarios = db.Usuarios.Find(id);
+            Usuarios usuarios = BLL.UsuariosBLL.Buscar(id);
             if (usuarios == null)
             {
                 return HttpNotFound();
@@ -83,8 +80,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(usuarios).State = EntityState.Modified;
-                db.SaveChanges();
+                BLL.UsuariosBLL.Modificar(usuarios);
                 return RedirectToAction("Index");
             }
             return View(usuarios);
@@ -97,7 +93,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Usuarios usuarios = db.Usuarios.Find(id);
+            Usuarios usuarios = BLL.UsuariosBLL.Buscar(id);
             if (usuarios == null)
             {
                 return HttpNotFound();
@@ -110,19 +106,8 @@ namespace DigitalServices.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Usuarios usuarios = db.Usuarios.Find(id);
-            db.Usuarios.Remove(usuarios);
-            db.SaveChanges();
+            BLL.UsuariosBLL.Eliminar(id);
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

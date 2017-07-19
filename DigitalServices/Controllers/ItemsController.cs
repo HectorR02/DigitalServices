@@ -13,12 +13,30 @@ namespace DigitalServices.Controllers
 {
     public class ItemsController : Controller
     {
-        private DigitalServicesDB db = new DigitalServicesDB();
+
+        [HttpGet]
+        public JsonResult Cantidad(int id)
+        {
+            int cant = BLL.ItemsBLL.Buscar(id).Existencia;
+
+            return Json(cant, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Listado()
+        {
+            return Json(BLL.ItemsBLL.Listar(), JsonRequestBehavior.AllowGet);
+        }
 
         // GET: Items
         public ActionResult Index()
         {
-            return View(db.Items.ToList());
+            var listado = BLL.ItemsBLL.Listar();
+            if (listado != null)
+            {
+                return View(listado);
+            }
+            return View();
         }
 
         // GET: Items/Details/5
@@ -28,7 +46,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Items items = db.Items.Find(id);
+            Items items = BLL.ItemsBLL.Buscar(id);
             if (items == null)
             {
                 return HttpNotFound();
@@ -51,8 +69,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Items.Add(items);
-                db.SaveChanges();
+                BLL.ItemsBLL.Guardar(items);
                 return RedirectToAction("Index");
             }
 
@@ -66,7 +83,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Items items = db.Items.Find(id);
+            Items items = BLL.ItemsBLL.Buscar(id);
             if (items == null)
             {
                 return HttpNotFound();
@@ -83,8 +100,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(items).State = EntityState.Modified;
-                db.SaveChanges();
+                BLL.ItemsBLL.Modificar(items);
                 return RedirectToAction("Index");
             }
             return View(items);
@@ -97,7 +113,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Items items = db.Items.Find(id);
+            Items items = BLL.ItemsBLL.Buscar(id);
             if (items == null)
             {
                 return HttpNotFound();
@@ -110,19 +126,8 @@ namespace DigitalServices.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Items items = db.Items.Find(id);
-            db.Items.Remove(items);
-            db.SaveChanges();
+            BLL.ItemsBLL.Eliminar(id);     
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

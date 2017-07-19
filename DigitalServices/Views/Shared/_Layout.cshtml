@@ -5,6 +5,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - Digital Services</title>
+    <script src="~/Scripts/bootstrap-select.min.js"></script>
+    <link href="~/Content/bootstrap-select.min.css" rel="stylesheet" />
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 </head>
@@ -27,14 +29,14 @@
                         <ul class="dropdown-menu">
                             <li>@Html.ActionLink("Clientes", "Create", "Clientes")</li>
                             <li>@Html.ActionLink("Facturas", "Create", "Facturas")</li>
-                            <li>@Html.ActionLink("Servicios", "Create", "Servicios")</li>
+                            <li>@Html.ActionLink("Items", "Create", "Items")</li>
                         </ul>
                     </li>
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Consultas<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li>@Html.ActionLink("Facturas", "Index", "Facturas")</li>
-                            <li>@Html.ActionLink("Servicios", "Index", "Servicios")</li>
+                            <li>@Html.ActionLink("Items", "Index", "Items")</li>
                         </ul>
                     </li>
                     <li>@Html.ActionLink("Acerca de", "About", "Home")</li>

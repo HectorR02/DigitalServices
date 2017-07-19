@@ -1,24 +1,103 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
+﻿
+using System;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using DigitalServices.DAL;
 using DigitalServices.Models;
 
 namespace DigitalServices.Controllers
 {
     public class FacturasController : Controller
     {
-        private DigitalServicesDB db = new DigitalServicesDB();
+
+        [HttpGet]
+        public JsonResult LastIndex()
+        {
+            int id = BLL.FacturasBLL.Identity();
+            if (id > 1 || BLL.FacturasBLL.Listar().Count > 0)
+                ++id;
+            return Json(id, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Guardar(EncabezadoDetalle Factura)
+        {
+            bool result = false;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    int y, m, d, h, min, s;
+                    /*Se actualiza la hora de la fecha que viene desde 
+                     * la ventana de registro a la hora actual*/
+                    y = Factura.Encabezado.Fecha.Year;
+                    m = Factura.Encabezado.Fecha.Month;
+                    d = Factura.Encabezado.Fecha.Day;
+                    h = now.Hour;
+                    min = now.Minute;
+                    s = now.Second;
+                    Factura.Encabezado.Fecha = new DateTime(y, m, d, h, min, s);
+
+                    result = BLL.FacturasBLL.Guardar(Factura);
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Buscar(int? facturaId)
+        {
+            EncabezadoDetalle factura = BLL.FacturasBLL.Buscar(facturaId);
+            if(factura != null)
+            {
+               return Json(factura, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+               return Json(false, JsonRequestBehavior.AllowGet);
+            }//"La factura que haz intentado consultar con Id: " + facturaId +", no esta disponible."
+        }
+
+        [HttpPost]
+        public JsonResult Modificar(EncabezadoDetalle factura)
+        {
+            var existe = (BLL.FacturasBLL.Buscar(factura.Encabezado.IdFactura) != null);
+            if(existe)
+            {
+                existe = BLL.FacturasBLL.Modificar(factura);
+                return Json(existe, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(null, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult Eliminar(EncabezadoDetalle factura)
+        {
+            var existe = (BLL.FacturasBLL.BuscarEncabezado(factura.Encabezado.IdFactura) != null);
+
+            if(existe)
+            {
+                existe = BLL.FacturasBLL.Eliminar(factura);
+                return Json(existe, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(null, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         // GET: Facturas
         public ActionResult Index()
         {
-            return View(db.Factura.ToList());
+            return View(BLL.FacturasBLL.Listar());
         }
 
         // GET: Facturas/Details/5
@@ -28,7 +107,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Facturas facturas = db.Factura.Find(id);
+            Facturas facturas = BLL.FacturasBLL.Buscar(id).Encabezado;
             if (facturas == null)
             {
                 return HttpNotFound();
@@ -51,36 +130,11 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Factura.Add(facturas);
-                db.SaveChanges();
+                BLL.FacturasBLL.Guardar(facturas);
                 return RedirectToAction("Index");
             }
 
             return View(facturas);
-        }
-
-        [HttpPost]
-        public JsonResult Guardar(EncabezadoDetalle Factura)
-        {
-            bool result = false;
-            if(ModelState.IsValid)
-            {
-                try
-                {
-                    db.Factura.Add(Factura.Encabezado);
-                    foreach (FacturaDetalles item in Factura.Detalle)
-                    {
-                        db.FaturaDetalle.Add(item);
-                    }
-                    result = db.SaveChanges() > 0;
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-            }
-            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         // GET: Facturas/Edit/5
@@ -90,7 +144,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Facturas facturas = db.Factura.Find(id);
+            Facturas facturas = BLL.FacturasBLL.BuscarEncabezado(id);
             if (facturas == null)
             {
                 return HttpNotFound();
@@ -107,8 +161,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(facturas).State = EntityState.Modified;
-                db.SaveChanges();
+                BLL.FacturasBLL.ModificarEncabezado(facturas.IdFactura);
                 return RedirectToAction("Index");
             }
             return View(facturas);
@@ -121,7 +174,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Facturas facturas = db.Factura.Find(id);
+            Facturas facturas = BLL.FacturasBLL.BuscarEncabezado(id);
             if (facturas == null)
             {
                 return HttpNotFound();
@@ -134,19 +187,8 @@ namespace DigitalServices.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Facturas facturas = db.Factura.Find(id);
-            db.Factura.Remove(facturas);
-            db.SaveChanges();
+            BLL.FacturasBLL.EliminarEncabezado(id);
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

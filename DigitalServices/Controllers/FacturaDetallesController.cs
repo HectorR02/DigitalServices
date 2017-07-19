@@ -13,12 +13,11 @@ namespace DigitalServices.Controllers
 {
     public class FacturaDetallesController : Controller
     {
-        private DigitalServicesDB db = new DigitalServicesDB();
 
         // GET: FacturaDetalles
         public ActionResult Index()
         {
-            return View(db.FaturaDetalle.ToList());
+            return View(BLL.FacturaDetalleBLL.Listar());
         }
 
         // GET: FacturaDetalles/Details/5
@@ -28,7 +27,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            FacturaDetalles facturaDetalles = db.FaturaDetalle.Find(id);
+            FacturaDetalles facturaDetalles = BLL.FacturaDetalleBLL.Buscar(id);
             if (facturaDetalles == null)
             {
                 return HttpNotFound();
@@ -51,8 +50,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.FaturaDetalle.Add(facturaDetalles);
-                db.SaveChanges();
+                BLL.FacturaDetalleBLL.Guardar(facturaDetalles);
                 return RedirectToAction("Index");
             }
 
@@ -66,7 +64,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            FacturaDetalles facturaDetalles = db.FaturaDetalle.Find(id);
+            FacturaDetalles facturaDetalles = BLL.FacturaDetalleBLL.Buscar(id);
             if (facturaDetalles == null)
             {
                 return HttpNotFound();
@@ -83,8 +81,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(facturaDetalles).State = EntityState.Modified;
-                db.SaveChanges();
+                BLL.FacturaDetalleBLL.Modificar(facturaDetalles);
                 return RedirectToAction("Index");
             }
             return View(facturaDetalles);
@@ -97,7 +94,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            FacturaDetalles facturaDetalles = db.FaturaDetalle.Find(id);
+            FacturaDetalles facturaDetalles = BLL.FacturaDetalleBLL.Buscar(id);
             if (facturaDetalles == null)
             {
                 return HttpNotFound();
@@ -110,19 +107,8 @@ namespace DigitalServices.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            FacturaDetalles facturaDetalles = db.FaturaDetalle.Find(id);
-            db.FaturaDetalle.Remove(facturaDetalles);
-            db.SaveChanges();
+            BLL.FacturaDetalleBLL.Eliminar(id);
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

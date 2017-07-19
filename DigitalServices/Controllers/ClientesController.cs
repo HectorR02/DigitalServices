@@ -13,12 +13,62 @@ namespace DigitalServices.Controllers
 {
     public class ClientesController : Controller
     {
-        private DigitalServicesDB db = new DigitalServicesDB();
+
+        [HttpGet]
+        public JsonResult Listado()
+        {
+            List<Clientes> listado = BLL.ClientesBLL.Listar();
+            if (listado.Count > 0)
+                return Json(listado, JsonRequestBehavior.AllowGet);
+            return Json(null, JsonRequestBehavior.DenyGet);
+        }
+
+        [HttpGet]
+        public JsonResult Buscar(int? clienteId)
+        {
+            var cliente = BLL.ClientesBLL.Buscar(clienteId);
+            return Json(cliente, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Guardar(Clientes cliente)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                res = BLL.ClientesBLL.Guardar(cliente);
+            }
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Modificar(Clientes cliente)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                if (BLL.ClientesBLL.Buscar(cliente.IdCliente) != null)
+                    res = BLL.ClientesBLL.Modificar(cliente);
+            }
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Eliminar(Clientes cliente)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                if (BLL.ClientesBLL.Buscar(cliente.IdCliente) != null)
+                    res = BLL.ClientesBLL.Eliminar(cliente);
+            }
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
 
         // GET: Clientes
         public ActionResult Index()
         {
-            return View(db.Cliente.ToList());
+            return View(BLL.ClientesBLL.Listar());
         }
 
         // GET: Clientes/Details/5
@@ -28,7 +78,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Clientes clientes = db.Cliente.Find(id);
+            Clientes clientes = BLL.ClientesBLL.Buscar(id);
             if (clientes == null)
             {
                 return HttpNotFound();
@@ -51,8 +101,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Cliente.Add(clientes);
-                db.SaveChanges();
+                BLL.ClientesBLL.Guardar(clientes);
                 return RedirectToAction("Index");
             }
 
@@ -66,7 +115,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Clientes clientes = db.Cliente.Find(id);
+            Clientes clientes = BLL.ClientesBLL.Buscar(id);
             if (clientes == null)
             {
                 return HttpNotFound();
@@ -83,8 +132,7 @@ namespace DigitalServices.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(clientes).State = EntityState.Modified;
-                db.SaveChanges();
+                BLL.ClientesBLL.Modificar(clientes);
                 return RedirectToAction("Index");
             }
             return View(clientes);
@@ -97,7 +145,7 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Clientes clientes = db.Cliente.Find(id);
+            Clientes clientes = BLL.ClientesBLL.Buscar(id);
             if (clientes == null)
             {
                 return HttpNotFound();
@@ -110,19 +158,8 @@ namespace DigitalServices.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Clientes clientes = db.Cliente.Find(id);
-            db.Cliente.Remove(clientes);
-            db.SaveChanges();
+            BLL.ClientesBLL.Eliminar(id);
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

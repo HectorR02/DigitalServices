@@ -13,6 +13,8 @@ namespace DigitalServices.Models
 
         public int IdCliente { get; set; }
 
+        public DateTime Fecha { get; set; }
+
         public int CantidadItems { get; set; }
 
         public double SubTotal { get; set; }

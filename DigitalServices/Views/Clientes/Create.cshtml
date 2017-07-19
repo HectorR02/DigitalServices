@@ -11,51 +11,47 @@
 {
     @Html.AntiForgeryToken()
     
-    <div class="form-horizontal">
+    <div class="form-horizontal ">
         <h4>Clientes</h4>
         <hr />
         <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon">Id:</span>
+                <input class="form-control input-group input" type="text" placeholder="Identificador" id="inpId" />
+                <button class="btn btn-group-sm btn-success" type="button" id="btnBuscar" onclick="">Buscar</button>
+            </div>
+        </div>
+        <div class="form-group">
             <div class="input-group col-lg-12">
-                <input class="form-control input-group-sm col-1 glyphicon glyphicon-user" type="text" name="Nombres" placeholder="Nombres" /><span class="glyphicon glyphicon-scale"></span> 
-                <button class="btn btn-success" type="button">Buscar</button>
+                <span class="input-group-addon glyphicon glyphicon-user"> Nombres</span>
+                <input id="inpNombres" class="form-control input-group-sm col-1 " type="text" name="Nombres" placeholder="Nombres" />
             </div>
         </div>
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        
         <div class="form-group">
-            @Html.LabelFor(model => model.Nombres, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Nombres, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Nombres, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Direcciòn:</span>
+                <input class="form-control input-group input" type="text" placeholder="Direcciòn" id="inpDireccion" />
             </div>
         </div>
-
         <div class="form-group">
-            @Html.LabelFor(model => model.Direccion, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Direccion, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Direccion, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Email:</span>
+                <input class="form-control input-group input" type="text" placeholder="Correo electrònico" id="inpEmail" />
             </div>
         </div>
-
         <div class="form-group">
-            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            <div class="input-group">
+                <span class="input-group-addon">Telèfono:</span>
+                <input class="form-control input-group input" type="text" placeholder="Telefono" id="inpTelefono" />
             </div>
         </div>
-
-        <div class="form-group">
-            @Html.LabelFor(model => model.Telefono, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Telefono, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Telefono, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group text-center col-xl-12">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <button type="button" class="btn btn-outline-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos()">Nuevo</button>
+                <button type="button" class="btn btn-outline-success col-sm-2" id="btnCrear" onclick="ArmarCliente(1)">Crear</button>
+                <button type="button" class="btn btn-outline-warning col-sm-2" id="btnModificar" onclick="ArmarCliente(2)">Modificar</button>
+                <button type="button" class="btn btn-outline-danger col-sm-2" id="btnEliminar" onclick="ArmarCliente(3)">Eliminar</button>
             </div>
         </div>
     </div>
@@ -67,4 +63,109 @@
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
+    <script type="text/javascript">
+        function ArmarCliente(motivo)
+        {
+            var id = $('#inpId').val();
+            var nombre = $('#inpNombres').val();
+            var direccion = $('#inpDirecciones').val();
+            var email = $('#inpEmail').val();
+            var telf = $('#inpTelefono').val();
+
+            var cliente = {
+                IdCliente: id,
+                Nombres: nombre,
+                Direccion: direccion,
+                Email: email,
+                Telefono: telf
+            };
+
+            if (modo == 1) {
+                CrearCliente(cliente);
+            } else if (modo == 2)
+            {
+                ModificarCliente(cliente);
+            } else if (modo == 3)
+            {
+                EliminarCliente(cliente);
+            }
+        }
+        function CrearCliente(cliente)
+        {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Clientes/Guardar",
+                data: JSON.stringify(cliente),
+                success: function (resultado) {
+                    if (resultado)
+                    {
+                        alert("El cliente fue registrado exitosamente.")
+                    }
+                    else
+                    {
+                        alert("No se pudo procesar su solicitud");
+                    }
+                    LimpiarCampos();
+                },
+                error: function (error)
+                {
+                    console.log(error);
+                }
+            })
+        }
+        function ModificarCliente(cliente)
+        {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Clientes/Modificar",
+                data: JSON.stringify(cliente),
+                success: function (resultado) {
+                    if (resultado)
+                    {
+                        alert("El cliente ha sido modificado.");
+                    }
+                    else
+                    {
+                        alert("Su solicitud no ha podido ser procesada");
+                    }
+                    LimpiarCampos();
+                }
+            })
+        }
+        function EliminarCliente(cliente) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Clientes/Eliminar",
+                data: JSON.stringify(cliente),
+                success: function (resultado)
+                {
+                    if (resultado) {
+                        alert("El cliente ha sido eliminado");
+                    }
+                    else
+                    {
+                        alert("La solicitud no ha podido ser procesada");
+                    }
+                    LimpiarCampos();
+                }
+            })
+        }
+
+        function LimpiarCampos()
+        {
+            $('#inpId').val("");
+            $('#inpNombres').val("");
+            $('#inpDirecciones').val("");
+            $('#inpEmail').val("");
+            $('#inpTelefono').val("");
+        }
+    </script>
 }
