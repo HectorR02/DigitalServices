@@ -13,6 +13,17 @@ namespace DigitalServices.Controllers
 {
     public class FacturaDetallesController : Controller
     {
+        [HttpPost]
+        public JsonResult Eliminar(int id)
+        {
+            var detail = BLL.FacturaDetalleBLL.Buscar(id);
+            bool existe = (detail != null);
+            if (existe)
+            {
+                existe = BLL.FacturaDetalleBLL.Eliminar(detail);
+            }
+            return Json(existe, JsonRequestBehavior.AllowGet);
+        }
 
         // GET: FacturaDetalles
         public ActionResult Index()

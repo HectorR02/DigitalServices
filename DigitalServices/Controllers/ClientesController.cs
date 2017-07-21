@@ -24,10 +24,24 @@ namespace DigitalServices.Controllers
         }
 
         [HttpGet]
-        public JsonResult Buscar(int? clienteId)
+        public JsonResult Siguiente()
+        {
+            int id = BLL.ClientesBLL.Identity();
+            if (id > 1 || BLL.ClientesBLL.Listar().Count > 0)
+            {
+                ++id;
+            }
+            return Json(id, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Buscar(int clienteId)
         {
             var cliente = BLL.ClientesBLL.Buscar(clienteId);
-            return Json(cliente, JsonRequestBehavior.AllowGet);
+            if(cliente != null)
+                return Json(cliente, JsonRequestBehavior.AllowGet);
+            else
+                return Json(false, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -36,7 +50,10 @@ namespace DigitalServices.Controllers
             bool res = false;
             if (ModelState.IsValid)
             {
-                res = BLL.ClientesBLL.Guardar(cliente);
+                if (BLL.ClientesBLL.Buscar(cliente.IdCliente) == null)
+                {
+                    res = BLL.ClientesBLL.Guardar(cliente);
+                }
             }
             return Json(res, JsonRequestBehavior.AllowGet);
         }
@@ -89,6 +106,10 @@ namespace DigitalServices.Controllers
         // GET: Clientes/Create
         public ActionResult Create()
         {
+            ViewBag.Email = "/^[a-zA-Z0-9_\\.-]+@([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$/";
+            ViewBag.Nombre = @"/^([A-Z]{1}[a-zñáéíóú]+[\s]*)+$/";
+            ViewBag.Telefono = @"/^[8]{1}[0|2|4]{1}[9]{1}[-][\d]{3}[-][\d]{4}$/";
+            ViewBag.Direccion = @"/^([A-Z0-9]*[a-zñáéíóú/.,#]+[\s]*)+$/";
             return View();
         }
 

@@ -1,10 +1,10 @@
 ﻿@model DigitalServices.Models.Clientes
 
 @{
-    ViewBag.Title = "Create";
+    ViewBag.Title = "Clientes";
 }
 
-<h2>Create</h2>
+<h2>Clientes</h2>
 
 
 @using (Html.BeginForm()) 
@@ -12,13 +12,11 @@
     @Html.AntiForgeryToken()
     
     <div class="form-horizontal ">
-        <h4>Clientes</h4>
-        <hr />
         <div class="form-group">
             <div class="input-group">
                 <span class="input-group-addon">Id:</span>
                 <input class="form-control input-group input" type="text" placeholder="Identificador" id="inpId" />
-                <button class="btn btn-group-sm btn-success" type="button" id="btnBuscar" onclick="">Buscar</button>
+                <button class="btn btn-group-sm btn-success" type="button" id="btnBuscar" onclick="BuscarCliente()">Buscar</button>
             </div>
         </div>
         <div class="form-group">
@@ -48,51 +46,59 @@
         </div>
         <div class="form-group text-center col-xl-12">
             <div class="col-md-offset-2 col-md-10">
-                <button type="button" class="btn btn-outline-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos()">Nuevo</button>
-                <button type="button" class="btn btn-outline-success col-sm-2" id="btnCrear" onclick="ArmarCliente(1)">Crear</button>
-                <button type="button" class="btn btn-outline-warning col-sm-2" id="btnModificar" onclick="ArmarCliente(2)">Modificar</button>
-                <button type="button" class="btn btn-outline-danger col-sm-2" id="btnEliminar" onclick="ArmarCliente(3)">Eliminar</button>
+                <button type="button" class="btn btn-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos(0)">Nuevo</button>
+                <button type="button" class="btn btn-success col-sm-2" id="btnCrear" onclick="ArmarCliente(1)">Crear</button>
+                <button type="button" class="btn btn-warning col-sm-2" id="btnModificar" onclick="ArmarCliente(2)">Modificar</button>
+                <button type="button" class="btn btn-danger col-sm-2" id="btnEliminar" onclick="ArmarCliente(3)">Eliminar</button>
             </div>
         </div>
     </div>
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index")
+    <font face="times new roman" size="6" color="black">
+        <p class="validateTips">Todos los campos son obligatorios</p>
+    </font>
 </div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
-    <script src="~/Scripts/bootstrap.js"></script>
     <script type="text/javascript">
+        $(document).ready(function () {
+            NextId();
+        })
+
+        function CargarCliente(cliente) {
+            $('#inpId').val(cliente.IdCliente);
+            $('#inpNombres').val(cliente.Nombres);
+            $('#inpDireccion').val(cliente.Direccion);
+            $('#inpEmail').val(cliente.Email);
+            $('#inpTelefono').val(cliente.Telefono);
+        }
         function ArmarCliente(motivo)
         {
-            var id = $('#inpId').val();
-            var nombre = $('#inpNombres').val();
-            var direccion = $('#inpDirecciones').val();
-            var email = $('#inpEmail').val();
-            var telf = $('#inpTelefono').val();
+            if (validar()) {
+                var id = $('#inpId').val();
+                var nombre = $('#inpNombres').val();
+                var direccion = $('#inpDireccion').val();
+                var email = $('#inpEmail').val();
+                var telf = $('#inpTelefono').val();
 
-            var cliente = {
-                IdCliente: id,
-                Nombres: nombre,
-                Direccion: direccion,
-                Email: email,
-                Telefono: telf
-            };
+                var cliente = {
+                    IdCliente: id,
+                    Nombres: nombre,
+                    Direccion: direccion,
+                    Email: email,
+                    Telefono: telf
+                };
 
-            if (modo == 1) {
-                CrearCliente(cliente);
-            } else if (modo == 2)
-            {
-                ModificarCliente(cliente);
-            } else if (modo == 3)
-            {
-                EliminarCliente(cliente);
+                if (motivo == 1) {
+                    CrearCliente(cliente);
+                } else if (motivo == 2) {
+                    ModificarCliente(cliente);
+                } else if (motivo == 3) {
+                    EliminarCliente(cliente);
+                }
             }
         }
         function CrearCliente(cliente)
@@ -158,14 +164,118 @@
                 }
             })
         }
+        function BuscarCliente()
+        {
+            var id = parseInt($('#inpId').val());
+            $.ajax({
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                url: "/Clientes/Buscar",
+                data: { clienteId: id },
+                success: function (Customer) {
+                    if (Customer != false) {
+                        CargarCliente(Customer);
+                    }
+                    else {
+                        alert("El cliente que haz solicitado no esta disponible\n" +
+                            "o no existe en nuestra base de datos");
+                        LimpiarCampos();
+                    }
+                }, error: function (error) {
+                    console.log(error);
+                }
+                
+            })
+            //$.getJSON("/Clientes/Buscar", { clienteId: id }, function (Customer) {
+            //    console.log(Customer);
+            //    if (Customer != null) {
+            //        CargarCliente(Customer);
+            //    } else {
+            //        alert("El cliente que haz solicitado no esta disponible\n" +
+            //            "o no existe en nuestra base de datos");
+            //    }
+            //})
+        }
+        function NextId()
+        {
+            $.getJSON("/Clientes/Siguiente", function (id) {
+                $('#inpId').val(id);
+            });
+        }
 
         function LimpiarCampos()
         {
             $('#inpId').val("");
             $('#inpNombres').val("");
-            $('#inpDirecciones').val("");
+            $('#inpDireccion').val("");
             $('#inpEmail').val("");
             $('#inpTelefono').val("");
+
+            $('#inpId').focus();
+            NextId();
+        }
+
+        var expEmail = @ViewBag.Email,
+            nombre = @ViewBag.Nombre,
+            Telf = @ViewBag.Telefono,
+            Dir = @ViewBag.Direccion;
+        
+        var ID = $("#inpId"),
+            CLIENTE = $("#inpNombres"),
+            DIRECCION = $("#inpDireccion"),
+            EMAIL = $("#inpEmail"),
+            TELF = $("#inpTelefono"),
+            allFields = $([]).add(ID).add(CLIENTE).add(DIRECCION).add(EMAIL).add(TELF),
+            tips = $(".validateTips");
+
+        function updateTips(t) {
+            tips
+                .text(t)
+                .addClass("ui-state-highlight");
+            setTimeout(function () {
+                tips.removeClass("ui-state-highlight", 1500);
+            }, 500);
+        }
+        function checkLength(obj, name, min, max) {
+            if (obj.val().length > max || obj.val().length < min) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips("La logitud del campo " + name + " debe estar entre " +
+                    min + " y " + max + ".");
+                return false;
+            } else {
+                return true;
+            }
+        }
+        function checkRegexp(obj, regexp, msj) {
+            if (!(regexp.test(obj.val()))) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips(msj);
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        function validar() {
+            var valid = true;
+
+            allFields.removeClass("ui-state-error");
+            updateTips("Todos los campos son obligatorios");
+
+            valid = valid && checkLength(ID, "Identificador", 1, 6);
+            valid = valid && checkRegexp(ID, /[0-9]/, "Solo se admiten números en el campo de Id.");
+            valid = valid && checkLength(CLIENTE, "Nombres", 5, 100);
+            valid = valid && checkRegexp(CLIENTE, nombre, "Solo se admiten letras en el campo del Cliente");
+            valid = valid && checkLength(DIRECCION, "Dirección", 12, 150);
+            valid = valid && checkRegexp(DIRECCION, Dir, "La direccion contiene caracteres no aceptado");
+            valid = valid && checkLength(EMAIL, "Email", 8, 50);
+            valid = valid && checkRegexp(EMAIL, expEmail, "Email no aceptado");
+            valid = valid && checkLength(TELF, "Teléfono", 12, 15);
+            valid = valid && checkRegexp(TELF, Telf, "Telefono no aceptado\nEj: 000-000-0000");
+
+            return valid;
         }
     </script>
 }

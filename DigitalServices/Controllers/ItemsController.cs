@@ -28,6 +28,73 @@ namespace DigitalServices.Controllers
             return Json(BLL.ItemsBLL.Listar(), JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
+        public JsonResult Siguiente()
+        {
+            int id = BLL.ItemsBLL.Identity();
+            if (id > 1 || BLL.ItemsBLL.Listar().Count > 0)
+            {
+                ++id;
+            }
+            return Json(id, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Guardar(Items item)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                if (BLL.ItemsBLL.Buscar(item.IdItem) == null)
+                {
+                    res = BLL.ItemsBLL.Guardar(item);
+                }
+            }
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Eliminar(Items item)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                if (BLL.ItemsBLL.Buscar(item.IdItem) != null)
+                    res = BLL.ItemsBLL.Eliminar(item);
+            }
+            return Json(item,JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public JsonResult Modificar(Items item)
+        {
+            bool res = false;
+            if (ModelState.IsValid)
+            {
+                if (BLL.ItemsBLL.Buscar(item.IdItem) != null)
+                {
+                    res = BLL.ItemsBLL.Modificar(item);
+                }
+            }
+            return Json(res, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult Buscar(int id)
+        {
+            bool res = false;
+            Items item = BLL.ItemsBLL.Buscar(id);
+            res = (item != null);
+            if (res)
+            {
+                return Json(item, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(res, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // GET: Items
         public ActionResult Index()
         {
@@ -57,6 +124,9 @@ namespace DigitalServices.Controllers
         // GET: Items/Create
         public ActionResult Create()
         {
+            ViewBag.Id = @"/^([0-9]*)+$/";
+            ViewBag.Precio = @"/^([0-9.,]*)+$/"; 
+            ViewBag.Dimenciones = @"/^([A-Z0-9]*[a-z/.,#]+[\s]*)+$/";
             return View();
         }
 

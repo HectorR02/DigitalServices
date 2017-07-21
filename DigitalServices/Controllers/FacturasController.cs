@@ -74,7 +74,7 @@ namespace DigitalServices.Controllers
             }
             else
             {
-                return Json(null, JsonRequestBehavior.AllowGet);
+                return Json(existe, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -90,7 +90,7 @@ namespace DigitalServices.Controllers
             }
             else
             {
-                return Json(null, JsonRequestBehavior.AllowGet);
+                return Json(existe, JsonRequestBehavior.AllowGet);
             }
         }
 

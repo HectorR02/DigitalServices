@@ -49,7 +49,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover table-sm table-bordered" id="tItems" data-content="">
+            <table class="table table-hover table-sm table-bordered" id="tItems">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -57,6 +57,7 @@
                         <th>Precio</th>
                         <th>Cantidad</th>
                         <th>Sub-Total</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="tItemsBody"></tbody>
@@ -151,7 +152,6 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
-    <script src="~/Scripts/bootstrap.js"></script>
     <script src="~/Scripts/moment.min.js"></script>
     <script src="~/Scripts/moment-with-locales.min.js"></script>
     <script type="text/javascript">
@@ -183,7 +183,7 @@
             updateTips("Todos los campos son obligatorios");
 
             if (checkRegexp(cantid, /[0-9]/, "El campo Cantidad solo admite nùmeros.") &&
-                checkLength(it, "Item", 5, 30) && checkLength(cantid, "Cantidad", 1, 4) &&
+                checkLength(it, "Item", 2, 30) && checkLength(cantid, "Cantidad", 1, 4) &&
                 checkLength(pre, "Precio", 2, 5)) {
                 var idItem = $('#selectItem').attr('name');
                 var grupo = $('#selectItem').attr('value');
@@ -250,6 +250,8 @@
                 fila += '<td>' + detail.Precio + '</td>';
                 fila += '<td>' + detail.Cantidad + '</td>';
                 fila += '<td>' + detail.Monto + '</td>';
+                fila += '<td><button id="' + detail.Id + '" value="' +
+                detail.Descripcion + '" class="btn btn-link" type="button" onclick="QuitarDetalle(this)">Eliminar</button></td >';
                 fila += '</tr>';
 
                 $('#tItemsBody').append(fila);
@@ -257,6 +259,29 @@
             });
             $('#inpSubTotal').val(monto);
             $('#inpTotal').val(monto);
+        }
+        function QuitarDetalle(ref)
+        {
+            var id = $(ref).attr('id');
+            var desc = $(ref).attr('value');
+            var pos;
+            //alert("id: " + id + " - Descripcion: " + desc);
+
+            $.each(Detalle, function (index, detail) {
+                if (detail.Descripcion == desc)
+                    pos = index;
+            });
+
+            Detalle.splice(pos, 1);
+            ActualizarTabla();
+            
+            if (id > 0)
+            {
+                var identificador = {
+                    id: id
+                }
+                EliminarDetalle(identificador);
+            }
         }
         function EnviarDatos() {
             var id = $('#inpId').val();
@@ -343,7 +368,7 @@
                 url: "/Facturas/Modificar",
                 data: JSON.stringify(EncabezadoDetalle),
                 success: function (res) {
-                    if (res != null)
+                    if (res)
                     {
                         alert("La factura ha sido modificada.");
                         LimpiarCampos(0);
@@ -364,7 +389,7 @@
                 url: "/Facturas/Eliminar",
                 data: JSON.stringify(EncabezadoDetalle),
                 success: function (res) {
-                    if (res != null)
+                    if (res)
                     {
                         alert("La factura ha sido eliminada correctamente.");
                     }
@@ -373,6 +398,22 @@
                         alert("No se ha podido procesar su solicitud.");
                     }
                     LimpiarCampos(0);
+                }
+            })
+        }
+        function EliminarDetalle(id) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/FacturaDetalles/Eliminar",
+                data: JSON.stringify(id),
+                success: function (res) {
+                    if (!res) {
+                        alert("No se pudo procesar la solicitud en el servidor.");
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
                 }
             })
         }
@@ -393,7 +434,9 @@
                     if (item.EsArticulo == 1) {
                         art = true;
                     }
-                    descripcion += " " + item.Dimenciones;
+                    else {
+                        descripcion += " " + item.Dimenciones;
+                    }
 
                     var opt = '<tr onclick="AsignarItem(this)">'
 
@@ -492,37 +535,38 @@
         }
         function ArmarFactura(motivo)
         {
-            var dstr = moment($('#inpFecha').val(), "DD/MM/YYYY hh:mm a");
-            var date = new Date(dstr.toString());
-            
-            var id = $('#inpId').val();
-            var itbis = $('#inpItbis').val();
-            var Tt = $('#inpTotal').val();
-            var SubTt = $('#inpSubTotal').val();
-            var idCustomer = parseInt($('#inpCliente').attr('value'));
+            if (validar()) {
+                var dstr = moment($('#inpFecha').val(), "DD/MM/YYYY hh:mm a");
+                var date = new Date(dstr.toString());
 
-            var enca = {
-                IdFactura: id,
-                IdCliente: idCustomer,
-                Fecha: date,
-                CantidadItems: parseInt(Detalle.length),
-                SubTotal: parseFloat(SubTt),
-                ITBIS: parseFloat(itbis),
-                TOTAL: parseFloat(Tt),
-                IdEmpleado: 1
-            }
+                var id = $('#inpId').val();
+                var itbis = $('#inpItbis').val();
+                var Tt = $('#inpTotal').val();
+                var SubTt = $('#inpSubTotal').val();
+                var idCustomer = parseInt($('#inpCliente').attr('value'));
 
-            var EncabezadoDetalle = {
-                Encabezado: enca,
-                Detalle: Detalle
-            }
+                var enca = {
+                    IdFactura: id,
+                    IdCliente: idCustomer,
+                    Fecha: date,
+                    CantidadItems: parseInt(Detalle.length),
+                    SubTotal: parseFloat(SubTt),
+                    ITBIS: parseFloat(itbis),
+                    TOTAL: parseFloat(Tt),
+                    IdEmpleado: 1
+                }
 
-            if (motivo == 1)
-            {
-                ModificarFactura(EncabezadoDetalle);
-            }
-            else if (motivo == 2) {
-                EliminarFactura(EncabezadoDetalle);
+                var EncabezadoDetalle = {
+                    Encabezado: enca,
+                    Detalle: Detalle
+                }
+
+                if (motivo == 1) {
+                    ModificarFactura(EncabezadoDetalle);
+                }
+                else if (motivo == 2) {
+                    EliminarFactura(EncabezadoDetalle);
+                }
             }
         }
 
@@ -563,7 +607,8 @@
                 return true;
             }
         }
-        function CrearFactura() {
+        function validar()
+        {
             var valid = true;
             allFields.removeClass("ui-state-error");
             updateTips("Todos los campos son obligatorios");
@@ -571,17 +616,21 @@
                 updateTips("Debe agregar algun item al detalle");
             }
             valid = valid && checkLength(ID, "Identificador", 1, 6);
-            valid = valid && checkLength(FECHA, "Fecha", 10, 11);
+            valid = valid && checkLength(FECHA, "Fecha", 10, 25);
             valid = valid && checkLength(CLIENTE, "Cliente", 5, 100);
 
-            valid = valid && checkRegexp(ID, /[0-9]/, "Solo se admiten numeros en el campo de Id.");
-            valid = valid && checkRegexp(CLIENTE, /[a-zA-Z]/, "Solo se admiten letras en el campo del Cliente");
-            if (Detalle.length <= 0)
-            {
+            valid = valid && checkRegexp(ID, /^[0-9]*$/, "Solo se admiten numeros en el campo de Id.");
+            valid = valid && checkRegexp(CLIENTE, /^[a-zA-Z]*/, "Solo se admiten letras en el campo del Cliente");
+            if (Detalle.length <= 0) {
                 updateTips("Debe haber Ìtems en el Detalle");
                 valid = false;
             }
-            if (valid)
+            return valid;
+        }
+        function CrearFactura() {
+            var validado = validar();
+
+            if (validado)
             {
                 EnviarDatos();
             }
