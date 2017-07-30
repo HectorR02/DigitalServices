@@ -109,7 +109,7 @@ namespace DigitalServices.BLL
             {
                 try
                 {
-                    listado = conexion.Factura.ToList();
+                    listado = conexion.Factura.OrderBy(f => f.Fecha).ToList();
                 }
                 catch (Exception)
                 {
@@ -130,6 +130,24 @@ namespace DigitalServices.BLL
                     listado = conexion.Factura.
                     Where(f => f.IdCliente == clienteId).
                     OrderBy(f => f.Fecha).ToList();
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return listado;
+        }
+        public static List<Facturas> Listar(Filtro filtro)
+        {
+            List<Facturas> listado = null;
+            using (var conexion = new DigitalServicesDB())
+            {
+                try
+                {
+                    listado = conexion.Factura.Where(f => f.Fecha.CompareTo(filtro.Desde) >= 0 &&
+                    f.Fecha.CompareTo(filtro.Hasta) <= 0).OrderBy(f => f.Fecha).ToList();
                 }
                 catch (Exception)
                 {

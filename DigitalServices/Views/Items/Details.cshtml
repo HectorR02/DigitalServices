@@ -1,4 +1,5 @@
-﻿@model DigitalServices.Models.Items
+﻿@using Newtonsoft.Json;
+@model DigitalServices.Models.Items
 
 @{
     ViewBag.Title = "Details";
@@ -6,53 +7,309 @@
 
 <h2>Details</h2>
 
-<div>
-    <h4>Items</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Descripcion)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Descripcion)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Precio)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Precio)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Existencia)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Existencia)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Duracion)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Duracion)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.EsArticulo)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.EsArticulo)
-        </dd>
-
-    </dl>
+<div class="form-horizontal">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Id:</span>
+            <input class="form-control input-group input" type="text" placeholder="Identificador" id="inpId" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Descripción:</span>
+            <input class="form-control input-group input" type="text" placeholder="Descripcion" id="inpDescripcion" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <input class="checkbox checkbox-inline" id="chArt" type="checkbox" checked="" onclick="EsArticulo()" />
+            <font face="times new roman" size="4" color="black">
+                <label> - Es un artículo?</label>
+            </font>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="exDu">Existencia:</span>
+            <input class="form-control input-group input" type="text" placeholder="Este campo es numérico" id="inpExDu" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="exDu">Precio:</span>
+            <input class="form-control input-group input" type="text" placeholder="Precio" id="inpPrecio" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon" id="exDu">Dimeciones:</span>
+            <input class="form-control input-group input" type="text" placeholder="Dimenciones" readonly="readonly" id="inpDimenciones" />
+        </div>
+    </div>
+    <div class="form-group text-center col-xl-12">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="button" class="btn btn-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos()">Nuevo</button>
+            <button type="button" class="btn btn-success col-sm-2" id="btnCrear" onclick="" disabled>Crear</button>
+            <button type="button" class="btn btn-warning col-sm-2" id="btnModificar" onclick="Armar(2)">Modificar</button>
+            <button type="button" class="btn btn-danger col-sm-2" id="btnEliminar" onclick="Armar(3)">Eliminar</button>
+        </div>
+    </div>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.IdItem }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+
+<div>
+    <font face="times new roman" size="6" color="black">
+        <p class="validateTips">Todos los campos son obligatorios</p>
+    </font>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        var item = {};
+        $(document).ready(function () {
+            item =  @Html.Raw(@JsonConvert.SerializeObject(Model));
+            Cargar(item);
+        })
+        function EsArticulo() {
+            if ($('#chArt').is(':checked')) {
+                $('#exDu').text('Existencia');
+                $('#inpDimenciones').attr('readonly', true);
+            }
+            else
+            {
+                $('#exDu').text('Duración');
+                $('#inpDimenciones').attr('readonly', false);
+            }
+        }
+        function Cargar(item) {
+            $('#inpId').val(item.IdItem);
+            $('#inpDescripcion').val(item.Descripcion);
+            $('#inpPrecio').val(item.Precio);
+            $('#chArt').attr('checked', (item.EsArticulo == 1));
+            if (item.EsArticulo == 1) {
+                $('#inpExDu').val(item.Existencia);
+                $('#inpDimenciones').val("");
+                $('#inpDimenciones').attr('readonly', true);
+            } else {
+                $('#inpExDu').val(item.Duracion);
+                $('#inpDimenciones').val(item.Dimenciones);
+                $('#inpDimenciones').attr('readonly', false);
+            }
+        }
+        function Armar(motivo)
+        {
+            if (validar()) {
+                var id = $('#inpId').val(),
+                    desc = $('#inpDescripcion').val(),
+                    prec = $('#inpPrecio').val(),
+                    exis,
+                    dura,
+                    art = $('#chArt').is(':checked'),
+                    dime = 0;
+                if (art) {
+                    exis = parseInt($('#inpExDu').val());
+                    dura = 0;
+                    art = 1;
+                } else {
+                    exis = 0;
+                    dura = parseInt($('#inpExDu').val());
+                    dime = $('#inpDimenciones').val();
+                    art = 0;
+                }
+
+                var item = {
+                    IdItem: id,
+                    Descripcion: desc,
+                    Precio: prec,
+                    Existencia: exis,
+                    Duracion: dura,
+                    EsArticulo: art,
+                    Dimenciones: dime
+                }
+
+                if (motivo == 1) {
+                    Crear(item);
+                } else if (motivo == 2) {
+                    Modificar(item);
+                } else if (motivo == 3) {
+                    Eliminar(item);
+                }
+            }
+        }
+
+        function NextId() {
+            $.getJSON("/Items/Siguiente", function (ID) {
+                $('#inpId').val(ID);
+            })
+        }
+        function Crear(item)
+        {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Items/Guardar",
+                data: JSON.stringify(item),
+                success: function (res) {
+                    if (res != false)
+                    {
+                        alert("El item se ha registrado exitosamente.");
+                    } else {
+                        alert("No se ha podido procesar su solicitud.");
+                    }
+                    LimpiarCampos();
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        function Modificar(item)
+        {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Items/Modificar",
+                data: JSON.stringify(item),
+                success: function (res) {
+                    if (res) {
+                        alert("El item ha sido modificado.");
+                        LimpiarCampos();
+                        var url = "/Items/Index/";
+                        window.location = "http://" + window.location.host + url;
+                    } else {
+                        alert("No se pudo procesar la solicitud.");
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        function Eliminar(item) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Items/Eliminar",
+                data: JSON.stringify(item),
+                success: function (res)
+                {
+                    if (res) {
+                        alert("El item ha sido eliminado.");
+                        LimpiarCampos();
+                        var url = "/Items/Index/";
+                        window.location = "http://" + window.location.host + url;
+                    } else {
+                        alert("La solicitud no pudo ser procesada");
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        function Buscar()
+        {
+            var id = parseInt($('#inpId').val());
+            console.log(id);
+            $.ajax({
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                url: "/Items/Buscar",
+                data: { id: id },
+                success: function (res)
+                {
+                    if (res != false) {
+                        Cargar(res);
+                    } else {
+                        alert("El item que ha solicitado no esta disponible \no ha sido eliminado.");
+                        LimpiarCampos();
+                    }
+                }
+            })
+        }
+
+        function LimpiarCampos()
+        {
+            $('#inpId').val("");
+            $('#inpDescripcion').val("");
+            $('#inpPrecio').val("");
+            $('#chArt').attr('checked', true);
+            $('#inpExDu').val("");
+            $('#inpDimenciones').val("");
+
+            $('#exDu').text('Existencia');
+            $('#inpDimenciones').attr('readonly', true);
+            NextId();
+        }
+
+        var ID = $("#inpId"),
+            DESCR = $("#inpDescripcion"),
+            PRECI = $("#inpPrecio"),
+            ExDu = $("#inpExDu"),
+            DURA = $("#chArt"),
+            DIME = $("#inpDimenciones"),
+            allFields = $([]).add(ID).add(DESCR).add(PRECI).add(ExDu).add(DIME),
+            tips = $(".validateTips");
+
+        var Id = @ViewBag.Id,
+            precio = @ViewBag.Precio,
+            dimenciones = @ViewBag.Dimenciones;
+
+        function updateTips(t) {
+            tips
+                .text(t)
+                .addClass("ui-state-highlight");
+            setTimeout(function () {
+                tips.removeClass("ui-state-highlight", 1500);
+            }, 500);
+        }
+        function checkLength(obj, name, min, max) {
+            if (obj.val().length > max || obj.val().length < min) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips("La logitud del campo " + name + " debe estar entre " +
+                    min + " y " + max + ".");
+                return false;
+            } else {
+                return true;
+            }
+        }
+        function checkRegexp(obj, regexp, msj) {
+            if (!(regexp.test(obj.val()))) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips(msj);
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        function validar() {
+            var valid = true;
+
+            allFields.removeClass("ui-state-error");
+            updateTips("Todos los campos son obligatorios");
+
+            valid = valid && checkLength(ID, "Identificador", 1, 6);
+            console.log("1");
+            valid = valid && checkRegexp(ID, /[0-9]/, "Solo se admiten números en el campo de Id.");
+            console.log("2");
+            valid = valid && checkLength(DESCR, "Descripcion", 3, 25);
+            console.log("4");
+            valid = valid && checkLength(ExDu, $('#exDu').text(), 1, 5);
+            console.log("7");
+            valid = valid && checkRegexp(ExDu, /[0-9]/, "Solo se admiten números en el campo " + $('#exDu').text());
+            console.log("6");
+            valid = valid && checkLength(PRECI, "Precio", 2, 6);
+            console.log("5");
+            valid = valid && checkRegexp(PRECI, precio, "El Precio contiene caracteres no aceptado");
+            console.log("10");
+            if (!DURA.is(':checked')) {
+                valid = valid && checkLength(DIME, "Dimenciones", 2, 20);
+            }
+
+            return valid;
+        }
+    </script>
+}

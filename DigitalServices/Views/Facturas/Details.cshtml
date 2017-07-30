@@ -1,4 +1,6 @@
-﻿@model DigitalServices.Models.Facturas
+﻿@using Newtonsoft.Json;
+@model DigitalServices.Models.EncabezadoDetalle
+
 
 @{
     ViewBag.Title = "Details";
@@ -6,61 +8,626 @@
 
 <h2>Details</h2>
 
-<div>
-    <h4>Facturas</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.IdCliente)
-        </dt>
+<div class="form-horizontal">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Id:</span>
+            <input class="form-control input-group input" type="text" placeholder="Identificador" id="inpId" />
+            @*<button class="btn btn-group-sm btn-success" type="button" id="btnBuscar" onclick="BuscarFactura()">Buscar</button>*@
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-calendar"> Fecha:</span>
+            <input class="form-control input-group input" type="text" placeholder="Fecha" id="inpFecha" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Cliente:</span>
+            <input class="form-control input-group input" type="text" placeholder="Consumidor" readonly id="inpCliente" />
+            <abbr title="Listado de clientes">
+                <button type="button" class="btn btn-info btn-group-lg glyphicon glyphicon-user" data-toggle="modal"
+                        data-target="#myModal" onclick="CargarClientes()"></button>
+            </abbr>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="input-group">
 
-        <dd>
-            @Html.DisplayFor(model => model.IdCliente)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.CantidadItems)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.CantidadItems)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.SubTotal)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.SubTotal)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.ITBIS)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.ITBIS)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.TOTAL)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.TOTAL)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.IdEmpleado)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.IdEmpleado)
-        </dd>
-
-    </dl>
+            <span class="input-group-addon glyphicon glyphicon-eye-open btn-info"
+                  data-toggle="modal" data-target="#diagItems" onclick="CargarItems()">
+                <abbr title="Listado de Ìtems"> Item:</abbr>
+            </span>
+            <input class="form-control input-group input" type="text" placeholder="Item" id="selectItem" readonly />
+            <input class="form-control input-group input" type="text" placeholder="Pecio" id="inpPrecio" readonly />
+            <input class="form-control input-group input" type="text" placeholder="Cantidad" id="inpCantidad" />
+            <button class="btn btn-group-sm btn-primary" id="btnAgregar" type="button" onclick="AgregarDetalle()">Agregar</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm table-bordered" id="tItems">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Sub-Total</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tItemsBody"></tbody>
+        </table>
+    </div>
+    <div class="form-group text-right">
+        <div class="input-group">
+            <span class="input-group-addon"><strong>Sub-Total</strong></span>
+            <input class="form-control input-group input" type="text" readonly id="inpSubTotal" placeholder="Sub-Total" value="0" />
+        </div>
+        <div class="input-group">
+            <span class="input-group-addon"><strong>ITBIS</strong></span>
+            <input class="form-control input-group input COL-2" type="text" readonly id="inpItbis" placeholder="Impuestos" value="0" />
+        </div>
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-shopping-cart "><strong> TOTAL</strong></span>
+            <input class="form-control input-group input" type="text" readonly id="inpTotal" placeholder="Total" value="0" />
+        </div>
+    </div>
+    <div class="form-group text-center col-xl-12">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="button" class="btn btn-info col-sm-2" id="btnLimpiar" onclick="LimpiarCampos(0)">Nuevo</button>
+            <button type="button" class="btn btn-success col-sm-2" id="btnCrear" onclick="" disabled>Crear</button>
+            <button type="button" class="btn btn-warning col-sm-2" id="btnModificar" onclick="ArmarFactura(1)">Modificar</button>
+            <button type="button" class="btn btn-danger col-sm-2" id="btnEliminar" onclick="ArmarFactura(2)">Eliminar</button>
+        </div>
+    </div>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.IdFactura }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Listado de Clientes</h4>
+            </div>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombres</th>
+                        <th>Telefono</th>
+                    </tr>
+                </thead>
+                <tbody id="tabClientes"></tbody>
+            </table>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="diagItems" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Items "Articulos - Servicios"</h4>
+            </div>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descripcion</th>
+                        <th>Precio</th>
+                        <th>Es Articulo</th>
+                    </tr>
+                </thead>
+                <tbody id="tabItems"></tbody>
+            </table>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <font face="times new roman" size="6" color="black">
+        <p class="validateTips">Todos los campos son obligatorios</p>
+    </font>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
+    <script src="~/Scripts/moment.min.js"></script>
+    <script src="~/Scripts/moment-with-locales.min.js"></script>
+    <script type="text/javascript">
+        var Detalle = Array();
+        var Clientes;
+        var Items;
+        var cantidad;
+        var encabezado;
+        var item = {};
+
+        $(document).ready(function ()
+        {
+            $.datepicker.setDefaults($.datepicker.regional["es"]);
+            $("#inpFecha").datepicker({
+                dateFormat: 'dd/mm/yy',
+                firstDay: 0,
+                monthNames: ['Enero', 'Febrero', 'Marzo',
+                    'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre',
+                    'Octubre', 'Nomviembre', 'Diciembre'],
+                dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            }).datepicker("setDate", "+m");
+            item = @Html.Raw(@JsonConvert.SerializeObject(Model));
+            CargarEncabezado(item);
+        });
+        function AgregarDetalle() {
+            var cantid = $('#inpCantidad'),
+                it = $('#selectItem'),
+                pre = $('#inpPrecio'),
+                Fields = $([]).add(cantid).add(it).add(pre);
+
+            Fields.removeClass("ui-state-error");
+            updateTips("Todos los campos son obligatorios");
+
+            if (checkRegexp(cantid, /[0-9]/, "El campo Cantidad solo admite nùmeros.") &&
+                checkLength(it, "Item", 2, 30) && checkLength(cantid, "Cantidad", 1, 4) &&
+                checkLength(pre, "Precio", 2, 5)) {
+                var idItem = $('#selectItem').attr('name');
+                var grupo = $('#selectItem').attr('value');
+                var idFactura = $('#inpId').val();
+                var desc = $('#selectItem').val();
+                var cant = $('#inpCantidad').val();
+
+                var prec = $('#inpPrecio').val();
+
+                var subTt = (parseInt(cant) * parseFloat(prec));
+
+                var detail = {
+                    Id: 0,
+                    IdFactura: idFactura,
+                    IdItem: parseInt(idItem),
+                    Descripcion: desc,
+                    Cantidad: parseInt(cant),
+                    Precio: parseFloat(prec),
+                    Monto: subTt
+                };
+
+                if (!HaSidoAgregado(desc)) {
+                    if (grupo != 0) {
+                        $.getJSON("/Items/Cantidad/" + idItem, function (cantidad) {
+                            if (cantidad != 0) {
+                                if (parseInt(cantidad) >= cant) {
+                                    Detalle.push(detail);
+                                    ActualizarTabla();
+                                }
+                                else {
+                                    alert("El articulo: '" + desc + "' no esta disponible o la cantidad solicitada\nexcede la existencia del mismo");
+                                }
+                            }
+                            else {
+                                alert("El articulo: '" + desc + "' no esta disponible o la cantidad solicitada\nexcede la existencia del mismo");
+                            }
+                        });
+                    }
+                    else {
+                        Detalle.push(detail);
+                        ActualizarTabla();
+                    }
+                    LimpiarCampos(1);
+                }
+                else {
+                    alert("El Ìtem: '" + desc + "' ya ha sido agregado a la factura,\nno debe estar duplicado");
+                    LimpiarCampos(1);
+                }
+            } else {
+                cantid.val("");
+                it.val("");
+                pre.val("");
+            }
+        }
+        function ActualizarTabla() {
+            if ($('#tItemsBody tr').length > 0)
+                $('#tItemsBody tr').remove();
+
+            var monto = 0;
+            $.each(Detalle, function (index, detail) {
+                var fila = '<tr>';
+                fila += '<td>' + (index + 1) + '</td>';
+                fila += '<td>' + detail.Descripcion + '</td>';
+                fila += '<td>' + detail.Precio + '</td>';
+                fila += '<td>' + detail.Cantidad + '</td>';
+                fila += '<td>' + detail.Monto + '</td>';
+                fila += '<td><button id="' + detail.Id + '" value="' +
+                    detail.Descripcion + '" class="btn btn-link" type="button" onclick="QuitarDetalle(this)">Eliminar</button></td >';
+                fila += '</tr>';
+
+                $('#tItemsBody').append(fila);
+                monto += parseFloat(detail.Monto);
+            });
+            $('#inpSubTotal').val(monto);
+            $('#inpTotal').val(monto);
+        }
+        function QuitarDetalle(ref) {
+            var id = $(ref).attr('id');
+            var desc = $(ref).attr('value');
+            var pos;
+
+            $.each(Detalle, function (index, detail) {
+                if (detail.Descripcion == desc)
+                    pos = index;
+            });
+
+            Detalle.splice(pos, 1);
+            ActualizarTabla();
+
+            if (id > 0) {
+                var identificador = {
+                    id: id
+                }
+                EliminarDetalle(identificador);
+            }
+        }
+        function EnviarDatos() {
+            var id = $('#inpId').val();
+            var itbis = $('#inpItbis').val();
+            var Tt = $('#inpTotal').val();
+            var SubTt = $('#inpSubTotal').val();
+            var fecha = $('#inpFecha').val();
+            var idCustomer = parseInt($('#inpCliente').attr('value'));
+
+            var enca = {
+                IdFactura: id,
+                IdCliente: idCustomer,
+                Fecha: fecha,
+                CantidadItems: parseInt(Detalle.length),
+                SubTotal: parseFloat(SubTt),
+                ITBIS: parseFloat(itbis),
+                TOTAL: parseFloat(Tt),
+                IdEmpleado: 1
+            }
+
+            var EncabezadoDetalle = {
+                Encabezado: enca,
+                Detalle: Detalle
+            }
+
+            SendJson(EncabezadoDetalle);
+        }
+        function CargarEncabezado(Factura)
+        {
+            var id = parseInt(Factura.Encabezado.IdCliente);
+            encabezado = Factura.Encabezado;
+            Detalle = Factura.Detalle;
+
+            var fecha = new Date(Factura.Encabezado.Fecha);
+
+            $('#inpId').val(Factura.Encabezado.IdFactura);
+            $('#inpFecha').val(fecha.toLocaleString());
+            $.getJSON("/Clientes/Buscar", { clienteId: id }, function (customer) {
+                $('#inpCliente').val(customer.Nombres);
+                $('#inpCliente').attr('value', id);
+            });
+            $('#inpSubTotal').val(encabezado.SubTotal);
+            $('#inpTotal').val(encabezado.TOTAL);
+            $('#inpItbis').val(encabezado.ITBIS);
+            ActualizarTabla();
+        }
+
+        function SendJson(datos) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(datos),
+                cache: false,
+                url: "/Facturas/Guardar",
+                success: function (data) {
+                    if (!data)
+                        alert("No se pudo guardar la informacion sobre la factura.");
+                    else
+                        alert("La factura ha sido registrada.");
+                    LimpiarCampos(0);
+                },
+                error: function (result) {
+                    alert("Ha ocurrido un erro -> " + result);
+                    LimpiarCampos(0);
+                }
+            });
+        }
+        function BuscarFactura() {
+            var id = parseInt($('#inpId').val());
+
+            $.getJSON("/Facturas/Buscar", { facturaId: id }, function (Factura) {
+                if (Factura != false) {
+                    CargarEncabezado(Factura)
+                }
+                else if (Factura == false) {
+                    alert("La factura que ha solicitado al parecer no esta disponible o ha sido eliminada");
+                    LimpiarCampos(0);
+                }
+            })
+        }
+        function ModificarFactura(EncabezadoDetalle) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Facturas/Modificar",
+                data: JSON.stringify(EncabezadoDetalle),
+                success: function (res) {
+                    if (res) {
+                        alert("La factura ha sido modificada.");
+                        LimpiarCampos(0);
+                        var url = "/Facturas/Index/";
+                        window.location = "http://" + window.location.host + url;
+                    } else {
+                        alert("No se a podido procesar su solicitud.");
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        }
+        function EliminarFactura(EncabezadoDetalle) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Facturas/Eliminar",
+                data: JSON.stringify(EncabezadoDetalle),
+                success: function (res) {
+                    if (res) {
+                        alert("La factura ha sido eliminada correctamente.");
+                        var url = "/Facturas/Index/";
+                        window.location = "http://" + window.location.host + url;
+                    }
+                    else {
+                        alert("No se ha podido procesar su solicitud.");
+                    }
+                    LimpiarCampos(0);
+                }
+            })
+        }
+        function EliminarDetalle(id) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/FacturaDetalles/Eliminar",
+                data: JSON.stringify(id),
+                success: function (res) {
+                    if (!res) {
+                        alert("No se pudo procesar la solicitud en el servidor.");
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+
+        function NextId() {
+            $.getJSON("/Facturas/LastIndex", function (id) {
+                $('#inpId').val(id);
+            });
+        }
+        function CargarItems() {
+            $.getJSON("/Items/Listado", function (ITEMS) {
+                Items = ITEMS;
+                if ($('#tabItems tr').length > 0)
+                    $('#tabItems tr').remove();
+                $.each(Items, function (index, item) {
+                    var descripcion = item.Descripcion;;
+                    var art = false;
+                    if (item.EsArticulo == 1) {
+                        art = true;
+                    }
+                    else {
+                        descripcion += " " + item.Dimenciones;
+                    }
+
+                    var opt = '<tr onclick="AsignarItem(this)">'
+
+                    opt += '<td>' + item.IdItem + '</td>';
+                    opt += '<td>' + descripcion + '</td>';
+                    opt += '<td>' + item.Precio + '</td>';
+                    opt += '<td>' + art + '</td>';
+
+                    opt += '</tr>';
+                    $('#tabItems').append(opt);
+                });
+            });
+        }
+        function CargarClientes() {
+            $.getJSON("/Clientes/Listado", function (clientes) {
+                if (clientes != null) {
+                    if ($('#tabClientes tr').length > 0)
+                        $('#tabClientes tr').remove();
+                    $.each(clientes, function (index, cliente) {
+                        var fila = '<tr onclick="AsignarCliente(this)">';
+                        fila += '<td>' + cliente.IdCliente + '</td>';
+                        fila += '<td>' + cliente.Nombres + '</td>';
+                        fila += '<td>' + cliente.Telefono + '</td>';
+                        fila += '</tr>';
+
+                        $('#tabClientes').append(fila);
+                    });
+                } else {
+                    alert("No hay clientes disponibles...");
+                }
+            })
+        }
+        function AsignarCliente(filaDelModal) {
+            var id = $(filaDelModal).find('td').eq(0).html();
+            var nombres = $(filaDelModal).find('td').eq(1).html();
+
+            $('#inpCliente').val(nombres);
+            $('#inpCliente').attr('value', id);
+
+           // $('#myModal').modal('toggle');
+        }
+        function AsignarItem(filaDelModal) {
+            var vals = $(filaDelModal).find('td');
+
+            var id = vals.eq(0).html();
+            var descripcion = vals.eq(1).html();
+            var precio = vals.eq(2).html();
+            var art = vals.eq(3).html();
+
+            $('#selectItem').attr('name', id);
+            $('#selectItem').val(descripcion);
+            $('#inpPrecio').val(precio);
+
+            if (art == true) {
+                $('#selectItem').attr('value', 1);
+            } else {
+                $('#selectItem').attr('value', 0);
+            }
+
+            // $('#diagItems').modal('toggle');
+            $('#inpCantidad').focus();
+        }
+        function HaSidoAgregado(descripcion) {
+            var res = false;
+            if (Detalle.length > 0) {
+                $.each(Detalle, function (index, detail) {
+                    if (detail.Descripcion == descripcion) {
+                        res = true;
+                    }
+                });
+            }
+            return res;
+        }
+
+        function LimpiarCampos(modo) {
+            if (modo == 0) {
+                $('#inpId').val("");
+                $('#inpCliente').val("");
+                $("#inpFecha").datepicker("setDate", "+m");
+                $('#tItemsBody tr').remove();
+
+                $('#inpSubTotal').val(0);
+                $('#inpITBIS').val(0);
+                $('#inpTotal').val(0);
+
+                Detalle = new Array();
+                NextId();
+            }
+            else {
+                $('#inpCantidad').focus();
+            }
+
+            $('#selectItem').val("");
+            $('#inpPrecio').val("");
+            $('#inpCantidad').val("");
+        }
+        function ArmarFactura(motivo) {
+            if (validar()) {
+                var dstr = moment($('#inpFecha').val(), "DD/MM/YYYY hh:mm a");
+                var date = new Date(dstr.toString());
+
+                var id = $('#inpId').val();
+                var itbis = $('#inpItbis').val();
+                var Tt = $('#inpTotal').val();
+                var SubTt = $('#inpSubTotal').val();
+                var idCustomer = parseInt($('#inpCliente').attr('value'));
+
+                var enca = {
+                    IdFactura: id,
+                    IdCliente: idCustomer,
+                    Fecha: date,
+                    CantidadItems: parseInt(Detalle.length),
+                    SubTotal: parseFloat(SubTt),
+                    ITBIS: parseFloat(itbis),
+                    TOTAL: parseFloat(Tt),
+                    IdEmpleado: 1
+                }
+
+                var EncabezadoDetalle = {
+                    Encabezado: enca,
+                    Detalle: Detalle
+                }
+
+                if (motivo == 1) {
+                    ModificarFactura(EncabezadoDetalle);
+                }
+                else if (motivo == 2) {
+                    EliminarFactura(EncabezadoDetalle);
+                }
+            }
+        }
+
+        var ID = $("#inpId"),
+            CLIENTE = $("#inpCliente"),
+            FECHA = $("#inpFecha"),
+            CANTIDAD = $("#inpCantidad"),
+            allFields = $([]).add(ID).add(CLIENTE).add(FECHA),
+            tips = $(".validateTips");
+
+        function updateTips(t) {
+            tips
+                .text(t)
+                .addClass("ui-state-highlight");
+            setTimeout(function () {
+                tips.removeClass("ui-state-highlight", 1500);
+            }, 500);
+        }
+        function checkLength(obj, name, min, max) {
+            if (obj.val().length > max || obj.val().length < min) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips("La logitud del campo " + name + " debe estar entre " +
+                    min + " y " + max + ".");
+                return false;
+            } else {
+                return true;
+            }
+        }
+        function checkRegexp(obj, regexp, msj) {
+            if (!(regexp.test(obj.val()))) {
+                obj.addClass("ui-state-error");
+                obj.focus();
+                updateTips(msj);
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+        function validar() {
+            var valid = true;
+            allFields.removeClass("ui-state-error");
+            updateTips("Todos los campos son obligatorios");
+            if (('#tItemsBody tr').length <= 0) {
+                updateTips("Debe agregar algun item al detalle");
+            }
+            valid = valid && checkLength(ID, "Identificador", 1, 6);
+            valid = valid && checkLength(FECHA, "Fecha", 10, 25);
+            valid = valid && checkLength(CLIENTE, "Cliente", 5, 100);
+
+            valid = valid && checkRegexp(ID, /^[0-9]*$/, "Solo se admiten numeros en el campo de Id.");
+            valid = valid && checkRegexp(CLIENTE, /^[a-zA-Z]*/, "Solo se admiten letras en el campo del Cliente");
+            if (Detalle.length <= 0) {
+                updateTips("Debe haber Ìtems en el Detalle");
+                valid = false;
+            }
+            return valid;
+        }
+        function CrearFactura() {
+            var validado = validar();
+
+            if (validado) {
+                EnviarDatos();
+            }
+        }
+    </script>
+}

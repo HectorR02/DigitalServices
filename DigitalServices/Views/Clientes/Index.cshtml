@@ -1,51 +1,67 @@
 ﻿@model IEnumerable<DigitalServices.Models.Clientes>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Listado de Clientes";
 }
 
-<h2>Index</h2>
+<h2>Clientes</h2>
 
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
-<table class="table">
+<table class="table table-hover table-responsive">
     <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Nombres)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Direccion)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Email)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Telefono)
-        </th>
-        <th></th>
+        <th>#</th>
+        <th>Nombres</th>
+        <th>Dirección</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Acciones</th>
     </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Nombres)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Direccion)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Email)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Telefono)
-        </td>
-        <td>
-            @Html.ActionLink("Editar", "Edit", new { id=item.IdCliente }) |
-            @Html.ActionLink("Detalles", "Details", new { id=item.IdCliente }) |
-            @Html.ActionLink("Eliminar", "Delete", new { id=item.IdCliente })
-        </td>
-    </tr>
-}
-
+    <tbody id="tbBody"></tbody>
 </table>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.getJSON("/Clientes/Listado", function (Customers) {
+                if (Customers != false) {
+                    $.each(Customers, function (index, customer) {
+
+                        fila = '<tr>';
+                        fila += '<td>' + (index + 1) + '</td>';
+                        fila += '<td>' + customer.Nombres + '</td>';
+                        fila += '<td>' + customer.Direccion + '</td>';
+                        fila += '<td>' + customer.Email + '</td>';
+                        fila += '<td>' + customer.Telefono + '</td>';
+                        fila += '<td>' +
+                            '<button id="' + customer.IdCliente + '" class="btn btn-link" type="button" onclick="EditarFactura(this)">Editar</button>' +
+                            '|' + '<button id="' + customer.IdCliente + '" class="btn btn-link" type="button" onclick="VerFactura(this)">Ver</button>' +
+                            '|' + '<button id="' + customer.IdCliente + '" class="btn btn-link" type="button" onclick="EliminarFactura(this)">Eliminar</button>'
+                            + '</td>';
+                        fila += '</tr>';
+
+                        $('#tbBody').append(fila);
+                    });
+                }
+            });
+        })
+        function EditarFactura(label)
+        {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Clientes/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function VerFactura(label) {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Clientes/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function EliminarFactura(label) {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Clientes/Delete/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+    </script>
+}

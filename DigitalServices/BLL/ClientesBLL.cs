@@ -91,7 +91,7 @@ namespace DigitalServices.BLL
             {
                 try
                 {
-                    listado = conexion.Cliente.ToList();
+                    listado = conexion.Cliente.OrderBy(c => c.Nombres).ToList();
                 }
                 catch (Exception)
                 {

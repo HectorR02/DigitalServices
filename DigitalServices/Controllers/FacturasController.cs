@@ -94,6 +94,45 @@ namespace DigitalServices.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult Listado()
+        {
+            var facturas = BLL.FacturasBLL.Listar();
+            if(facturas.Count > 0)
+            {
+                return Json(facturas, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(false, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult Filtrar(Filtro filtro)
+        {
+            DateTime now = DateTime.Now;
+            int y, m, d, h, min, s;
+            /*Se actualiza la hora de la fecha que viene desde 
+             * la ventana de registro a la hora actual*/
+            y = filtro.Hasta.Year;
+            m = filtro.Hasta.Month;
+            d = filtro.Hasta.Day;
+            h = now.Hour;
+            min = now.Minute;
+            s = now.Second;
+            filtro.Hasta = new DateTime(y, m, d, h, min, s);
+            var listado = BLL.FacturasBLL.Listar(filtro);
+            if (listado != null)
+            {
+                return Json(listado, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(false, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // GET: Facturas
         public ActionResult Index()
         {
@@ -107,7 +146,8 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Facturas facturas = BLL.FacturasBLL.Buscar(id).Encabezado;
+            var facturas = BLL.FacturasBLL.Buscar(id);
+            ViewBag.Factura = facturas;
             if (facturas == null)
             {
                 return HttpNotFound();
@@ -174,12 +214,15 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Facturas facturas = BLL.FacturasBLL.BuscarEncabezado(id);
-            if (facturas == null)
+            var res = BLL.FacturasBLL.Eliminar(id);
+            if (res)
+            {
+                return RedirectToAction("Index");
+            }
+            else
             {
                 return HttpNotFound();
             }
-            return View(facturas);
         }
 
         // POST: Facturas/Delete/5

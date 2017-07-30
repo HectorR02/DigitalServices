@@ -206,9 +206,10 @@
                 };
 
                 if (!HaSidoAgregado(desc)) {
-                    if (grupo != 0) {
+                    if (grupo == 1) {
                         $.getJSON("/Items/Cantidad/" + idItem, function (cantidad) {
-                            if (cantidad != 0) {
+                            if (cantidad > 0) {
+                                console.log(cantidad);
                                 if (parseInt(cantidad) >= cant) {
                                     Detalle.push(detail);
                                     ActualizarTabla();
@@ -476,7 +477,7 @@
             $('#inpCliente').val(nombres);
             $('#inpCliente').attr('value', id);
 
-            // $('#myModal').modal('toggle');
+           // $('#myModal').modal('toggle');
         }
         function AsignarItem(filaDelModal) {
             var vals = $(filaDelModal).find('td');
@@ -490,13 +491,13 @@
             $('#selectItem').val(descripcion);
             $('#inpPrecio').val(precio);
 
-            if (art == true) {
+            if (art) {
                 $('#selectItem').attr('value', 1);
             } else {
                 $('#selectItem').attr('value', 0);
             }
 
-            // $('#diagItems').modal('toggle');
+           // $('#diagItems').modal('toggle');
             $('#inpCantidad').focus();
         }
         function HaSidoAgregado(descripcion) {

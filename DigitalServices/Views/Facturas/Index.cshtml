@@ -1,63 +1,171 @@
 ﻿@model IEnumerable<DigitalServices.Models.Facturas>
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Facturas Procesadas";
 }
 
-<h2>Index</h2>
+<h2>Listado de facturas</h2>
 
 <p>
-    @Html.ActionLink("Create New", "Create")
+    @Html.ActionLink("Nueva factura", "Create")
 </p>
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.IdCliente)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CantidadItems)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.SubTotal)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.ITBIS)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.TOTAL)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.IdEmpleado)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.IdCliente)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CantidadItems)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.SubTotal)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ITBIS)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.TOTAL)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.IdEmpleado)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.IdFactura }) |
-            @Html.ActionLink("Details", "Details", new { id=item.IdFactura }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.IdFactura })
-        </td>
-    </tr>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        <div class="form-group">
+            <div class="input-group text-left">
+                <span class="input-group-addon glyphicon glyphicon-calendar"></span>
+                <abbr title="Punto de partida 'Fecha de inicio'">
+                    <input id="inpDesde" type="text" class="form-control input-group input" placeholder="Desde" />
+                </abbr>
+                <abbr title="Punto de llegada 'Fecha de fin'">
+                    <input id="inpHasta" type="text" class="form-control input-group input" placeholder="Hasta" />
+                </abbr>
+                <button id="btBuscar" type="button" class="btn btn-group btn-info" onclick="Filtrar()">Filtrar</button>
+            </div>
+        </div>
+        <table class="table table-hover table-responsive">
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Items</th>
+                <th>Monto Total</th>
+                <th>Acciones</th>
+            </tr>
+            <tbody id="tbBody"></tbody>
+        </table>
+    </div>
 }
 
-</table>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
+    <script type="text/javascript">
+        var cliente,
+            Listado = new Array();
+        $(document).ready(function () {
+            $.datepicker.setDefaults($.datepicker.regional["es"]);
+            $("#inpDesde").datepicker({
+                dateFormat: 'dd/mm/yy',
+                firstDay: 0,
+                monthNames: ['Enero', 'Febrero', 'Marzo',
+                    'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre',
+                    'Octubre', 'Nomviembre', 'Diciembre'],
+                dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            });
+            $("#inpHasta").datepicker({
+                dateFormat: 'dd/mm/yy',
+                firstDay: 0,
+                monthNames: ['Enero', 'Febrero', 'Marzo',
+                    'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre',
+                    'Octubre', 'Nomviembre', 'Diciembre'],
+                dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            });
+            Todas();
+        });
+        function Todas() {
+            $.getJSON("/Facturas/Listado", function (facturas) {
+                if (facturas != false) {
+                    LlenarArray(facturas, facturas.length);
+                }
+            });
+        }
+        function LlenarArray(facturas, cant) {
+            $.each(facturas, function (index, factura) {
+                var nombre;
+                $.getJSON("/Clientes/Buscar", { clienteId: parseInt(factura.IdCliente) }, function (customer) {
+                    if (customer != false) {
+                        nombre = customer.Nombres;
+                        var date = factura.Fecha.split('(');
+                        date = date[1].split(')', 1);
+                        var fecha = new Date(parseInt(date[0]));
+                        Listado.push({
+                            IdFactura: factura.IdFactura,
+                            Fecha: fecha.toLocaleString(),
+                            Cliente: customer.Nombres,
+                            CantidadItems: factura.CantidadItems,
+                            TOTAL: factura.TOTAL
+                        });
+                        if (Listado.length == cant) {
+                            ActualizarTabla();
+                        }
+                    }
+                    else {
+                        alert("No se encontro el cliente con id: {0}", id);
+                        return false;
+                    }
+                });
+            });
+        }
+        function EditarFactura(fact) {
+            var id = parseInt($(fact).attr('id'));
+            var url = "/Facturas/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function VerFactura(fact) {
+            var id = parseInt($(fact).attr('id'));
+            var url = "/Facturas/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function EliminarFactura(fact) {
+            var id = parseInt($(fact).attr('id'));
+            var url = "/Facturas/Delete/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function ActualizarTabla() {
+            if ($('#tbBody tr').length > 0)
+                $('#tbBody tr').remove();
+
+            $.each(Listado, function (index, factura) {
+                var fila = '<tr>';
+
+                fila += '<td>' + (index + 1) + '</td>';
+                fila += '<td>' + factura.Fecha + '</td>';
+                fila += '<td>' + factura.Cliente + '</td>';
+                fila += '<td>' + factura.CantidadItems + '</td>';
+                fila += '<td>' + factura.TOTAL + '</td>';
+                fila += '<td>' +
+                    '<button id="' + factura.IdFactura + '" class="btn btn-link" type="button" onclick="EditarFactura(this)">Editar</button>' +
+                    '|' + '<button id="' + factura.IdFactura + '" class="btn btn-link" type="button" onclick="VerFactura(this)">Ver</button>' +
+                    '|' + '<button id="' + factura.IdFactura + '" class="btn btn-link" type="button" onclick="EliminarFactura(this)">Eliminar</button>'
+                    + '</td>';
+
+                fila += '</tr>';
+                $('#tbBody').append(fila);
+            });
+        }
+        function Filtrar() {
+            var desde = $('#inpDesde').val();
+            var hasta = $('#inpHasta').val();
+            var data = {
+                Desde: desde.toLocaleString(),
+                Hasta: hasta.toLocaleString()
+            };
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Facturas/Filtrar",
+                data: JSON.stringify(data),
+                success: function (facturas) {
+                    if (facturas != false) {
+                        Listado = new Array();
+                        LlenarArray(facturas, facturas.length);
+                    } else {
+                        alert("No se han encontrado coincidencias");
+                    }
+                },
+                error: function (Error) {
+                    console.log(Error);
+                }
+            })
+        }
+    </script>
+}

@@ -9,49 +9,69 @@
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
-<table class="table">
+<table class="table table-hover table-responsive">
     <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Descripcion)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Precio)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Existencia)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Duracion)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.EsArticulo)
-        </th>
-        <th></th>
+        <th>#</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Existencia</th>
+        <th>Duración</th>
+        <th>Es Artículo</th>
+        <th>Acciones</th>
     </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Descripcion)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Precio)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Existencia)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Duracion)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.EsArticulo)
-        </td>
-        <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.IdItem }) |
-            @Html.ActionLink("Details", "Details", new { id=item.IdItem }) |
-            @Html.ActionLink("Delete", "Delete", new { id=item.IdItem })
-        </td>
-    </tr>
-}
-
+    <tbody id="tbBody"></tbody>
 </table>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.getJSON("/Items/Listado", function (Items) {
+                if (Items != false) {
+                    $.each(Items, function (index, item) {
+                        var des = item.Descripcion;
+                        var esArt = (item.EsArticulo == 1);
+                        var existencia = item.Existencia;
+                        var duracion = "undefined";
+                        if (!esArt) {
+                            des += " "+ item.Dimenciones;
+                            existencia = "undefined";
+                            duracion = item.Duracion;
+                        }
+                        fila = '<tr>';
+                        fila += '<td>' + (index + 1) + '</td>';
+                        fila += '<td>' + des + '</td>';
+                        fila += '<td>' + item.Precio + '</td>';
+                        fila += '<td>' + existencia + '</td>';
+                        fila += '<td>' + duracion + '</td>';
+                        fila += '<td>' + esArt + '</td>';
+                        fila += '<td>' +
+                            '<button id="' + item.IdItem + '" class="btn btn-link" type="button" onclick="Editar(this)">Editar</button>' +
+                            '|' + '<button id="' + item.IdItem + '" class="btn btn-link" type="button" onclick="Ver(this)">Ver</button>' +
+                            '|' + '<button id="' + item.IdItem + '" class="btn btn-link" type="button" onclick="Eliminar(this)">Eliminar</button>'
+                            + '</td>';
+                        fila += '</tr>';
+
+                        $('#tbBody').append(fila);
+                    });
+                }
+            });
+        })
+        function Editar(label)
+        {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Items/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function Ver(label) {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Items/Details/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+        function Eliminar(label) {
+            var id = parseInt($(label).attr('id'));
+            var url = "/Items/Delete/" + id;
+            window.location = "http://" + window.location.host + url;
+        }
+    </script>
+}

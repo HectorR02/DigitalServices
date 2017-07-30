@@ -25,7 +25,15 @@ namespace DigitalServices.Controllers
         [HttpGet]
         public JsonResult Listado()
         {
-            return Json(BLL.ItemsBLL.Listar(), JsonRequestBehavior.AllowGet);
+            var itemes = BLL.ItemsBLL.Listar();
+            if (itemes.Count > 0)
+            {
+                return Json(BLL.ItemsBLL.Listar(), JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(true, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpGet]
@@ -114,6 +122,9 @@ namespace DigitalServices.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             Items items = BLL.ItemsBLL.Buscar(id);
+            ViewBag.Id = @"/^([0-9]*)+$/";
+            ViewBag.Precio = @"/^([0-9.,]*)+$/";
+            ViewBag.Dimenciones = @"/^([A-Z0-9]*[a-z/.,#]+[\s]*)+$/";
             if (items == null)
             {
                 return HttpNotFound();
@@ -183,12 +194,15 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Items items = BLL.ItemsBLL.Buscar(id);
-            if (items == null)
+            var res = BLL.ItemsBLL.Eliminar(id);
+            if (res)
+            {
+                return RedirectToAction("Index");
+            }
+            else
             {
                 return HttpNotFound();
             }
-            return View(items);
         }
 
         // POST: Items/Delete/5

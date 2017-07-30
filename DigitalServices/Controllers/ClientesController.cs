@@ -96,6 +96,10 @@ namespace DigitalServices.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             Clientes clientes = BLL.ClientesBLL.Buscar(id);
+            ViewBag.Email = "/^[a-zA-Z0-9_\\.-]+@([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$/";
+            ViewBag.Nombre = @"/^([A-Z]{1}[a-zñáéíóú]+[\s]*)+$/";
+            ViewBag.Telefono = @"/^[8]{1}[0|2|4]{1}[9]{1}[-][\d]{3}[-][\d]{4}$/";
+            ViewBag.Direccion = @"/^([A-Z0-9]*[a-zñáéíóú/.,#]+[\s]*)+$/";
             if (clientes == null)
             {
                 return HttpNotFound();
@@ -166,12 +170,15 @@ namespace DigitalServices.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Clientes clientes = BLL.ClientesBLL.Buscar(id);
-            if (clientes == null)
+            var res = BLL.ClientesBLL.Eliminar(id);
+            if (res)
+            {
+                return RedirectToAction("Index");
+            }
+            else
             {
                 return HttpNotFound();
             }
-            return View(clientes);
         }
 
         // POST: Clientes/Delete/5
