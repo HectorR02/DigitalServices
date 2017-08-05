@@ -9,18 +9,20 @@
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
-<table class="table table-hover table-responsive">
-    <tr>
-        <th>#</th>
-        <th>Descripción</th>
-        <th>Precio</th>
-        <th>Existencia</th>
-        <th>Duración</th>
-        <th>Es Artículo</th>
-        <th>Acciones</th>
-    </tr>
-    <tbody id="tbBody"></tbody>
-</table>
+    <table class="table table-hover table-responsive" id="paRep">
+        <tr>
+            <th>#</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Existencia</th>
+            <th>Duración</th>
+            <th>Es Artículo</th>
+            <th>Acciones</th>
+        </tr>
+        <tbody id="tbBody"></tbody>
+    </table>
+<button id="btnReport" type="button" class="btn btn-primary glyphicon glyphicon-check" 
+        onclick="Reporte()"> Generar Reporte</button>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
@@ -72,6 +74,10 @@
             var id = parseInt($(label).attr('id'));
             var url = "/Items/Delete/" + id;
             window.location = "http://" + window.location.host + url;
-        }
+        } 
+        function Reporte() {
+            var url = "/Items/Reporte";
+            window.location = "http://" + window.location.host + url;
+        }  
     </script>
 }

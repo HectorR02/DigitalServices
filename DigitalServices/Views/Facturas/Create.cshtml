@@ -140,7 +140,6 @@
 }
 
 <div>
-    @Html.ActionLink("Back to List", "Index")
     <font face="times new roman" size="6" color="black">
         <p class="validateTips">Todos los campos son obligatorios</p>
     </font>
@@ -321,9 +320,14 @@
                 success: function (data) {
                     if (!data)
                         alert("No se pudo guardar la informacion sobre la factura.");
-                    else
+                    else {
                         alert("La factura ha sido registrada.");
+                        var id = parseInt($('#inpId').val());
+                        var url = "/Facturas/Reporte/" + id;
+                        window.location = "http://" + window.location.host + url;
+                    }
                     LimpiarCampos(0);
+                    
                 },
                 error: function (result) {
                     alert("Ha ocurrido un erro -> " + result);
@@ -431,9 +435,9 @@
                     $('#tabItems tr').remove();
                 $.each(Items, function (index, item) {
                     var descripcion = item.Descripcion;;
-                    var art = false;
+                    var art = "No";
                     if (item.EsArticulo == 1) {
-                        art = true;
+                        art = "Si";
                     }
                     else {
                         descripcion += " " + item.Dimenciones;
@@ -491,7 +495,7 @@
             $('#selectItem').val(descripcion);
             $('#inpPrecio').val(precio);
 
-            if (art) {
+            if (art == "Si") {
                 $('#selectItem').attr('value', 1);
             } else {
                 $('#selectItem').attr('value', 0);

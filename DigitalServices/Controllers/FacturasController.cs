@@ -3,12 +3,13 @@ using System;
 using System.Net;
 using System.Web.Mvc;
 using DigitalServices.Models;
+using DigitalServices.Models.Consultas;
+using System.Collections.Generic;
 
 namespace DigitalServices.Controllers
 {
     public class FacturasController : Controller
     {
-
         [HttpGet]
         public JsonResult LastIndex()
         {
@@ -53,13 +54,13 @@ namespace DigitalServices.Controllers
         public JsonResult Buscar(int? facturaId)
         {
             EncabezadoDetalle factura = BLL.FacturasBLL.Buscar(facturaId);
-            if(factura != null)
+            if (factura != null)
             {
-               return Json(factura, JsonRequestBehavior.AllowGet);
+                return Json(factura, JsonRequestBehavior.AllowGet);
             }
             else
             {
-               return Json(false, JsonRequestBehavior.AllowGet);
+                return Json(false, JsonRequestBehavior.AllowGet);
             }//"La factura que haz intentado consultar con Id: " + facturaId +", no esta disponible."
         }
 
@@ -67,7 +68,7 @@ namespace DigitalServices.Controllers
         public JsonResult Modificar(EncabezadoDetalle factura)
         {
             var existe = (BLL.FacturasBLL.Buscar(factura.Encabezado.IdFactura) != null);
-            if(existe)
+            if (existe)
             {
                 existe = BLL.FacturasBLL.Modificar(factura);
                 return Json(existe, JsonRequestBehavior.AllowGet);
@@ -83,7 +84,7 @@ namespace DigitalServices.Controllers
         {
             var existe = (BLL.FacturasBLL.BuscarEncabezado(factura.Encabezado.IdFactura) != null);
 
-            if(existe)
+            if (existe)
             {
                 existe = BLL.FacturasBLL.Eliminar(factura);
                 return Json(existe, JsonRequestBehavior.AllowGet);
@@ -98,7 +99,7 @@ namespace DigitalServices.Controllers
         public JsonResult Listado()
         {
             var facturas = BLL.FacturasBLL.Listar();
-            if(facturas.Count > 0)
+            if (facturas.Count > 0)
             {
                 return Json(facturas, JsonRequestBehavior.AllowGet);
             }
@@ -106,6 +107,21 @@ namespace DigitalServices.Controllers
             {
                 return Json(false, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpGet]
+        public ActionResult Reporte(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            FacturaReporte factura = BLL.FacturasBLL.ParaReporte(id);
+            if (factura == null)
+            {
+                return HttpNotFound();
+            }
+            return View(factura);
         }
 
         [HttpPost]
@@ -122,7 +138,7 @@ namespace DigitalServices.Controllers
             min = now.Minute;
             s = now.Second;
             filtro.Hasta = new DateTime(y, m, d, h, min, s);
-            var listado = BLL.FacturasBLL.Listar(filtro);
+            var listado = BLL.FacturasBLL.ListarC(filtro);
             if (listado != null)
             {
                 return Json(listado, JsonRequestBehavior.AllowGet);

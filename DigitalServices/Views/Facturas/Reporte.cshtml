@@ -1,0 +1,109 @@
+﻿@using Newtonsoft.Json;
+@model DigitalServices.Models.Consultas.FacturaReporte
+
+@{
+    ViewBag.Title = "Factura #"+Model.Encabezado.IdFactura;
+}
+
+<div id="Reporte">
+    <div class="form-group text-center">
+        <p style="text-align: center">
+            Digital Services
+        </p>        
+        <p style="text-align: center">
+            C/16 de Agosto Esq. 27 de Febrero, Tenares, Rep. Dom.
+        </p> 
+        <p style="text-align: center">
+            Teléfono: (809) 587 - 5555.
+        </p> 
+    </div>
+    <div class="form-group text-center">
+        <p style="text-align: right">
+            Factura # @Model.Encabezado.IdFactura<br />
+        </p>
+        <p style="text-align: right" id="pFecha">
+           Fecha: @Model.Encabezado.Fecha<br />
+        </p>
+    </div>
+    <div class="form-group text-left">
+        <p style="text-align: left">
+            Cliente: @Model.Encabezado.Cliente<br />
+        </p>
+    </div>
+    <table border="1" class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Sub-Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var detail in Model.Detalle)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => detail.Id)</td>
+                    <td>@Html.DisplayFor(modelItem => detail.Descripcion)</td>
+                    <td>@Html.DisplayFor(modelItem => detail.Precio)</td>
+                    <td>@Html.DisplayFor(modelItem => detail.Cantidad)</td>
+                    <td>@Html.DisplayFor(modelItem => detail.Monto)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="form-group text-right">
+        <p style="text-align: right">
+            Sub-Total: @Model.Encabezado.SubTotal<br />
+        </p>
+        <p style="text-align: right">
+            ITBIS: @Model.Encabezado.ITBIS<br />
+        </p>
+        <p style="text-align: right">
+            Total: @Model.Encabezado.TOTAL<br />
+        </p>
+    </div>
+</div>
+<button type="button" class="btn btn-primary glyphicon glyphicon-print"
+        onclick="CrearPDF()"> Imprimir</button>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/jspdf.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+           
+        });
+        function CrearPDF() {
+            var name = 'Facturas #' + @Model.Encabezado.IdFactura;
+            var pdf = new jsPDF('p', 'pt', 'letter');
+            source = $('#Reporte')[0];
+            specialElementHandlers = {
+                '#bypassme': function (element, renderer) {
+                    return true
+                }
+            }
+            margins = {
+                top: 50,
+                left: 60,
+                width: 545
+            };
+            pdf.fromHTML(
+                source // HTML string or DOM elem ref.
+                , margins.left // x coord
+                , margins.top // y coord
+                , {
+                    'width': margins.width // max width of content on PDF
+                    , 'elementHandlers': specialElementHandlers
+                },
+                function (dispose) {
+                    // dispose: object with X, Y of the last line add to the PDF
+                    //          this allow the insertion of new lines after html
+
+                    pdf.save(name + '.pdf');
+                }
+            )
+        }
+    </script>
+}

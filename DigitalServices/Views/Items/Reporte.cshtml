@@ -1,0 +1,94 @@
+﻿@using Newtonsoft.Json;
+@model IEnumerable<DigitalServices.Models.Items>
+
+@{
+    ViewBag.Title = "Reporte";
+}
+
+<h2>Listado de items</h2>
+
+<div id="Reporte">
+    <table border="1" class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Existencia</th>
+                <th>Duración</th>
+                <th>Es Artículo</th>
+            </tr>
+        </thead>
+        <tbody id="tabBody"></tbody>
+    </table>
+</div>
+<button id="btnPrint" type="button" class="btn btn-primary glyphicon glyphicon-print" onclick="CrearPDF()"> Imprimir</button>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/jspdf.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var items = {};
+            items =  @Html.Raw(@JsonConvert.SerializeObject(Model));
+            LlenarTabla(items);
+        })
+        function LlenarTabla(datos)
+        {
+            $.each(datos, function (index, item) {
+                var des = item.Descripcion;
+                var esArt = (item.EsArticulo == 1);
+                var existencia = item.Existencia;
+                var duracion = "undefined";
+                if (!esArt) {
+                    des += " " + item.Dimenciones;
+                    existencia = "undefined";
+                    duracion = item.Duracion;
+                }
+                fila = '<tr>';
+                fila += '<td>' + item.IdItem + '</td>';
+                fila += '<td>' + des + '</td>';
+                fila += '<td>' + item.Precio + '</td>';
+                fila += '<td>' + existencia + '</td>';
+                fila += '<td>' + duracion + '</td>';
+                fila += '<td>' + esArt + '</td>';
+                fila += '</tr>';
+
+                $('#tabBody').append(fila);
+            });
+            CrearPDF();
+        }
+        function CrearPDF() {
+            var name = 'ListadoItems' + new Date().toLocaleDateString();
+            var pdf = new jsPDF('p', 'pt', 'letter');
+            source = $('#Reporte')[0];
+            specialElementHandlers = {
+                '#bypassme': function (element, renderer) {
+                    return true
+                }
+            }
+            margins = {
+                top: 50,
+                left: 60,
+                width: 545
+            };
+            pdf.fromHTML(
+                source // HTML string or DOM elem ref.
+                , margins.left // x coord
+                , margins.top // y coord
+                , {
+                    'width': margins.width // max width of content on PDF
+                    , 'elementHandlers': specialElementHandlers
+                },
+                function (dispose) {
+                    // dispose: object with X, Y of the last line add to the PDF
+                    //          this allow the insertion of new lines after html
+                    
+                    pdf.save(name + '.pdf');
+                }
+            )
+        }
+    </script>
+}
+
+

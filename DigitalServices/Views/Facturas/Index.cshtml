@@ -1,4 +1,5 @@
-﻿@model IEnumerable<DigitalServices.Models.Facturas>
+﻿@using Newtonsoft.Json;
+@model IEnumerable<DigitalServices.Models.Facturas>
 
 @{
     ViewBag.Title = "Facturas Procesadas";
@@ -25,23 +26,59 @@
                 <button id="btBuscar" type="button" class="btn btn-group btn-info" onclick="Filtrar()">Filtrar</button>
             </div>
         </div>
-        <table class="table table-hover table-responsive">
-            <tr>
-                <th>#</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Items</th>
-                <th>Monto Total</th>
-                <th>Acciones</th>
-            </tr>
-            <tbody id="tbBody"></tbody>
-        </table>
+            <table class="table table-hover table-responsive">
+                <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Items</th>
+                    <th>Monto Total</th>
+                    <th>Acciones</th>
+                </tr>
+                <tbody id="tbBody"></tbody>
+            </table>
+        <button type="button" class="btn btn-primary glyphicon glyphicon-book" 
+        data-toggle="modal" data-target="#myModal" onclick=""> 
+        Generar Reporte</button>
+    </div>
+
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Listado de Clientes</h4>
+                </div>
+                <div id="Reporte">
+                    <table border="1" class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>CantidadItems</th>
+                                <th>SubTotal</th>
+                                <th>Itbis</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabBody"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" 
+                    onclick="CrearPDF()">Imprimir</button>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="~/Scripts/jspdf.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="http://code.google.com/p/jquery-ui/source/browse/branches/labs/datepicker2/ui/i18n/jquery.ui.datepicker-es.js?r=3875"></script>
@@ -68,40 +105,12 @@
                     'Octubre', 'Nomviembre', 'Diciembre'],
                 dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
             });
-            Todas();
         });
         function Todas() {
             $.getJSON("/Facturas/Listado", function (facturas) {
                 if (facturas != false) {
                     LlenarArray(facturas, facturas.length);
                 }
-            });
-        }
-        function LlenarArray(facturas, cant) {
-            $.each(facturas, function (index, factura) {
-                var nombre;
-                $.getJSON("/Clientes/Buscar", { clienteId: parseInt(factura.IdCliente) }, function (customer) {
-                    if (customer != false) {
-                        nombre = customer.Nombres;
-                        var date = factura.Fecha.split('(');
-                        date = date[1].split(')', 1);
-                        var fecha = new Date(parseInt(date[0]));
-                        Listado.push({
-                            IdFactura: factura.IdFactura,
-                            Fecha: fecha.toLocaleString(),
-                            Cliente: customer.Nombres,
-                            CantidadItems: factura.CantidadItems,
-                            TOTAL: factura.TOTAL
-                        });
-                        if (Listado.length == cant) {
-                            ActualizarTabla();
-                        }
-                    }
-                    else {
-                        alert("No se encontro el cliente con id: {0}", id);
-                        return false;
-                    }
-                });
             });
         }
         function EditarFactura(fact) {
@@ -121,16 +130,27 @@
         }
         function ActualizarTabla() {
             if ($('#tbBody tr').length > 0)
+            {
                 $('#tbBody tr').remove();
+                $('#tabBody tr').remove();
+            }
 
             $.each(Listado, function (index, factura) {
+                var date = factura.Fecha.split('(');
+                date = date[1].split(')', 1);
+                var fecha = new Date(parseInt(date[0]));
+                var otra;
                 var fila = '<tr>';
-
-                fila += '<td>' + (index + 1) + '</td>';
-                fila += '<td>' + factura.Fecha + '</td>';
+        //
+                fila += '<td>' + factura.IdFactura + '</td>';
+                fila += '<td>' + fecha.toLocaleString() + '</td>';
                 fila += '<td>' + factura.Cliente + '</td>';
                 fila += '<td>' + factura.CantidadItems + '</td>';
+                otra = fila;
+                otra += '<td>' + factura.SubTotal + '</td>';
+                otra += '<td>' + factura.ITBIS + '</td>';
                 fila += '<td>' + factura.TOTAL + '</td>';
+                otra += '<td>' + factura.TOTAL + '</td>';
                 fila += '<td>' +
                     '<button id="' + factura.IdFactura + '" class="btn btn-link" type="button" onclick="EditarFactura(this)">Editar</button>' +
                     '|' + '<button id="' + factura.IdFactura + '" class="btn btn-link" type="button" onclick="VerFactura(this)">Ver</button>' +
@@ -139,6 +159,7 @@
 
                 fila += '</tr>';
                 $('#tbBody').append(fila);
+                $('#tabBody').append(otra);
             });
         }
         function Filtrar() {
@@ -157,7 +178,9 @@
                 success: function (facturas) {
                     if (facturas != false) {
                         Listado = new Array();
-                        LlenarArray(facturas, facturas.length);
+                        Listado = facturas;
+                        ActualizarTabla();
+                        //LlenarArray(facturas, facturas.length);
                     } else {
                         alert("No se han encontrado coincidencias");
                     }
@@ -166,6 +189,56 @@
                     console.log(Error);
                 }
             })
+        }
+        function VerReporte() {
+            var desde = $('#inpDesde').val();
+            var hasta = $('#inpHasta').val();
+            var data = {
+                Desde: desde.toLocaleString(),
+                Hasta: hasta.toLocaleString()
+            };
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Facturas/Reporte",
+                data: JSON.stringify(data),
+                success: function (ruta) {
+                    console.log(ruta);
+                    window.location = "http://" + window.location.host + ruta;
+                }, error: function (error) {
+                    console.log(error);
+                }
+            })
+        }
+        function CrearPDF() {
+            var name = 'ListadoFacturas' + new Date().toLocaleDateString();
+            var pdf = new jsPDF('p', 'pt', 'letter');
+            source = $('#Reporte')[0];
+            specialElementHandlers = {
+                '#bypassme': function (element, renderer) {
+                    return true
+                }
+            }
+            margins = {
+                top: 50,
+                left: 60,
+                width: 545
+            };
+            pdf.fromHTML(
+                source // HTML string or DOM elem ref.
+                , margins.left // x coord
+                , margins.top // y coord
+                , {
+                    'width': margins.width // max width of content on PDF
+                    , 'elementHandlers': specialElementHandlers
+                },
+                function (dispose) {
+                    // dispose: object with X, Y of the last line add to the PDF
+                    //          this allow the insertion of new lines after html
+
+                    pdf.save(name + '.pdf');
+                }
+            )
         }
     </script>
 }

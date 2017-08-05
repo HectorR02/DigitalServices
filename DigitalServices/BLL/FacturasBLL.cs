@@ -6,6 +6,7 @@ using System.Web;
 using DigitalServices.DAL;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using DigitalServices.Models.Consultas;
 
 namespace DigitalServices.BLL
 {
@@ -157,6 +158,37 @@ namespace DigitalServices.BLL
             }
             return listado;
         }
+        public static List<FacturaC> ListarC(Filtro filtro) {
+            var listado = Listar(filtro);
+            List<FacturaC> result = null;
+            try
+            {
+                if (listado.Count > 0)
+                {
+                    result = new List<FacturaC>();
+                    foreach (var factura in listado)
+                    {
+                        result.Add(new FacturaC()
+                        {
+                            CantidadItems = factura.CantidadItems,
+                            Cliente = BLL.ClientesBLL.Buscar(factura.IdCliente).Nombres,
+                            Fecha = factura.Fecha,
+                            IdEmpleado = factura.IdEmpleado,
+                            IdFactura = factura.IdFactura,
+                            ITBIS = factura.ITBIS,
+                            SubTotal = factura.SubTotal,
+                            TOTAL = factura.TOTAL
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return result;
+        }
         public static bool Eliminar(int? facturaId)
         {
             try
@@ -245,6 +277,40 @@ namespace DigitalServices.BLL
                 }
             }
             return false;
+        }
+        public static FacturaReporte ParaReporte(int? facturaId)
+        {
+            FacturaReporte factura = null;
+            Facturas fact = BuscarEncabezado(facturaId);
+            if (fact != null)
+            {
+                factura = new FacturaReporte();
+                try
+                {
+                    factura.Encabezado = new FacturaC()
+                    {
+                        CantidadItems = fact.CantidadItems,
+                        Cliente = BLL.ClientesBLL.Buscar(fact.IdCliente).Nombres,
+                        Fecha = fact.Fecha,
+                        IdEmpleado = fact.IdEmpleado,
+                        IdFactura = fact.IdFactura,
+                        ITBIS = fact.ITBIS,
+                        SubTotal = fact.SubTotal,
+                        TOTAL = fact.TOTAL
+                    };
+                    factura.Detalle = BLL.FacturaDetalleBLL.Listar(fact.IdFactura);
+                    for (int i = 0; i < factura.Detalle.Count; ++i)
+                    {
+                        factura.Detalle[i].Id = (i + 1);
+                    }
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+            return factura;
         }
         public static int Identity()
         {

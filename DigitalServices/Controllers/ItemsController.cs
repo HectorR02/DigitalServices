@@ -103,6 +103,18 @@ namespace DigitalServices.Controllers
             }
         }
 
+        [HttpGet]
+        public ActionResult Reporte()
+        {
+            var listado = BLL.ItemsBLL.Listar();
+            if (listado.Count > 0)
+            {
+                return View(listado);
+            }
+
+            return HttpNotFound();
+        }
+
         // GET: Items
         public ActionResult Index()
         {

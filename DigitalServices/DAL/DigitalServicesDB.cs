@@ -23,5 +23,7 @@ namespace DigitalServices.DAL
         public DbSet<Items> Items { get; set; }
 
         public DbSet<Usuarios> Usuarios { get; set; }
+
+        public System.Data.Entity.DbSet<DigitalServices.Models.Consultas.FacturaC> FacturaCs { get; set; }
     }
 }

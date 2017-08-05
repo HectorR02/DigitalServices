@@ -168,7 +168,7 @@
                     'Julio', 'Agosto', 'Septiembre',
                     'Octubre', 'Nomviembre', 'Diciembre'],
                 dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-            }).datepicker("setDate", "+m");
+            });
             item = @Html.Raw(@JsonConvert.SerializeObject(Model));
             CargarEncabezado(item);
         });
