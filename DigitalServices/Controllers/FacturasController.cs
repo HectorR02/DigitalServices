@@ -152,7 +152,7 @@ namespace DigitalServices.Controllers
         // GET: Facturas
         public ActionResult Index()
         {
-            return View(BLL.FacturasBLL.Listar());
+            return View(BLL.FacturasBLL.ListarC());
         }
 
         // GET: Facturas/Details/5

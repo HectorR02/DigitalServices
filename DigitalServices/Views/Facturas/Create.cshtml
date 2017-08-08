@@ -4,7 +4,7 @@
     ViewBag.Title = "Registro Facturas";
 }
 
-<h2><strong>Facturación</strong></h2>
+<h2 style="text-align: center"><strong>Facturación</strong></h2>
 
 
 @using (Html.BeginForm())
@@ -500,8 +500,6 @@
             } else {
                 $('#selectItem').attr('value', 0);
             }
-
-           // $('#diagItems').modal('toggle');
             $('#inpCantidad').focus();
         }
         function HaSidoAgregado(descripcion) {

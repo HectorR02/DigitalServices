@@ -189,6 +189,38 @@ namespace DigitalServices.BLL
             }
             return result;
         }
+        public static List<FacturaC> ListarC()
+        {
+            var listado = Listar();
+            List<FacturaC> result = null;
+            try
+            {
+                if (listado.Count > 0)
+                {
+                    result = new List<FacturaC>();
+                    foreach (var factura in listado)
+                    {
+                        result.Add(new FacturaC()
+                        {
+                            CantidadItems = factura.CantidadItems,
+                            Cliente = BLL.ClientesBLL.Buscar(factura.IdCliente).Nombres,
+                            Fecha = factura.Fecha,
+                            IdEmpleado = factura.IdEmpleado,
+                            IdFactura = factura.IdFactura,
+                            ITBIS = factura.ITBIS,
+                            SubTotal = factura.SubTotal,
+                            TOTAL = factura.TOTAL
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return result;
+        }
         public static bool Eliminar(int? facturaId)
         {
             try

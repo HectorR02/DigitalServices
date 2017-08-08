@@ -1,15 +1,12 @@
 ﻿@using Newtonsoft.Json;
-@model IEnumerable<DigitalServices.Models.Facturas>
+@model IEnumerable<DigitalServices.Models.Consultas.FacturaC>
 
 @{
     ViewBag.Title = "Facturas Procesadas";
 }
 
-<h2>Listado de facturas</h2>
+<h2 style="text-align: center"><strong>Listado de facturas</strong></h2>
 
-<p>
-    @Html.ActionLink("Nueva factura", "Create")
-</p>
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
@@ -105,13 +102,11 @@
                     'Octubre', 'Nomviembre', 'Diciembre'],
                 dayNamesMin: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
             });
+            Todas();
         });
         function Todas() {
-            $.getJSON("/Facturas/Listado", function (facturas) {
-                if (facturas != false) {
-                    LlenarArray(facturas, facturas.length);
-                }
-            });
+            Listado = @Html.Raw(@JsonConvert.SerializeObject(Model));
+            ActualizarTabla(0);
         }
         function EditarFactura(fact) {
             var id = parseInt($(fact).attr('id'));
@@ -128,7 +123,7 @@
             var url = "/Facturas/Delete/" + id;
             window.location = "http://" + window.location.host + url;
         }
-        function ActualizarTabla() {
+        function ActualizarTabla(origen) {
             if ($('#tbBody tr').length > 0)
             {
                 $('#tbBody tr').remove();
@@ -136,12 +131,19 @@
             }
 
             $.each(Listado, function (index, factura) {
-                var date = factura.Fecha.split('(');
-                date = date[1].split(')', 1);
-                var fecha = new Date(parseInt(date[0]));
+                var fecha;
+
+                if (origen == 1) {
+                    var date = factura.Fecha.split('(');
+                    date = date[1].split(')', 1);
+                    fecha = new Date(parseInt(date[0]));
+                } else if (origen == 0) {
+                    fecha = new Date(factura.Fecha);
+                }
+
                 var otra;
                 var fila = '<tr>';
-        //
+        
                 fila += '<td>' + factura.IdFactura + '</td>';
                 fila += '<td>' + fecha.toLocaleString() + '</td>';
                 fila += '<td>' + factura.Cliente + '</td>';
@@ -179,8 +181,7 @@
                     if (facturas != false) {
                         Listado = new Array();
                         Listado = facturas;
-                        ActualizarTabla();
-                        //LlenarArray(facturas, facturas.length);
+                        ActualizarTabla(1);
                     } else {
                         alert("No se han encontrado coincidencias");
                     }
